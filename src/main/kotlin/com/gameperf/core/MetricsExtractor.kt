@@ -11,50 +11,75 @@ enum class MetricType {
     FPS,
     FRAME_TIME,
     MEMORY,
-    CPU
+    CPU,
+    JANK_FRAMES,
+    SLOW_RENDER
 }
 
 class MetricsExtractor {
     
     private val metrics = mutableListOf<Metric>()
+    private val fpsHistory = mutableListOf<Double>()
+    private val frameTimes = mutableListOf<Double>()
     
     fun extract(logEntry: LogEntry): Metric? {
         val message = logEntry.message
         
-        // FPS patterns
         extractFps(message, logEntry)?.let { return it }
-        
-        // Frame time patterns  
         extractFrameTime(message, logEntry)?.let { return it }
-        
-        // Memory patterns
         extractMemory(message, logEntry)?.let { return it }
+        extractCpu(message, logEntry)?.let { return it }
+        extractJank(message, logEntry)?.let { return it }
         
         return null
     }
     
+    fun extractFromDumpsys(deviceId: String, fps: Int, frameTime: Double, memoryMb: Double) {
+        metrics.add(Metric(MetricType.FPS, fps.toDouble(), System.currentTimeMillis(), deviceId))
+        fpsHistory.add(fps.toDouble())
+        if (frameTime > 0) {
+            metrics.add(Metric(MetricType.FRAME_TIME, frameTime, System.currentTimeMillis(), deviceId))
+            frameTimes.add(frameTime)
+        }
+        if (memoryMb > 0) {
+            metrics.add(Metric(MetricType.MEMORY, memoryMb, System.currentTimeMillis(), deviceId))
+        }
+    }
+    
     private fun extractFps(message: String, logEntry: LogEntry): Metric? {
-        // Pattern: "FPS: 60" or "fps: 60" or "FPS: 59.98"
-        val fpsPattern = Regex("FPS[:\\s]+(\\d+\\.?\\d*)", RegexOption.IGNORE_CASE)
-        val match = fpsPattern.find(message) ?: return null
+        val patterns = listOf(
+            Regex("FPS[:\\s]+(\\d+\\.?\\d*)", RegexOption.IGNORE_CASE),
+            Regex("fps[:\\s]+(\\d+)", RegexOption.IGNORE_CASE),
+            Regex("(\\d+)\\s*fps", RegexOption.IGNORE_CASE),
+            Regex("frames/sec[:\\s]+(\\d+\\.?\\d*)", RegexOption.IGNORE_CASE),
+            Regex("SurfaceFlinger\\s+(\\d+)\\s+fps", RegexOption.IGNORE_CASE)
+        )
         
-        val fps = match.groupValues[1].toDoubleOrNull() ?: return null
+        for (pattern in patterns) {
+            val match = pattern.find(message) ?: continue
+            val fps = match.groupValues[1].toDoubleOrNull() ?: continue
+            
+            if (fps in 1.0..240.0) {
+                fpsHistory.add(fps)
+                return Metric(
+                    type = MetricType.FPS,
+                    value = fps,
+                    timestamp = logEntry.timestamp,
+                    deviceId = logEntry.deviceId
+                ).also { metrics.add(it) }
+            }
+        }
         
-        return Metric(
-            type = MetricType.FPS,
-            value = fps,
-            timestamp = logEntry.timestamp,
-            deviceId = logEntry.deviceId
-        ).also { metrics.add(it) }
+        return null
     }
     
     private fun extractFrameTime(message: String, logEntry: LogEntry): Metric? {
-        // Pattern: "Frame time: 16.67ms" or "frame: 16ms"
-        val framePattern = Regex("(?:Frame[\\s-]?time|frame)[:\\s]+(\\d+\\.?\\d*)\\s*ms?", RegexOption.IGNORE_CASE)
+        val framePattern = Regex("(?:Frame[\\s-]?time|frame|ftime)[:\\s]+(\\d+\\.?\\d*)\\s*ms?", RegexOption.IGNORE_CASE)
         val match = framePattern.find(message) ?: return null
         
         val frameTime = match.groupValues[1].toDoubleOrNull() ?: return null
         
+        frameTimes.add(frameTime)
         return Metric(
             type = MetricType.FRAME_TIME,
             value = frameTime,
@@ -64,8 +89,7 @@ class MetricsExtractor {
     }
     
     private fun extractMemory(message: String, logEntry: LogEntry): Metric? {
-        // Pattern: "Memory: 256MB" or "mem: 256 MB"
-        val memPattern = Regex("(?:Memory|Mem)[:\\s]+(\\d+\\.?\\d*)\\s*(MB|GB|M)?", RegexOption.IGNORE_CASE)
+        val memPattern = Regex("(?:Memory|Mem|PSS)[:\\s]+(\\d+\\.?\\d*)\\s*(MB|GB|M|k|K)?", RegexOption.IGNORE_CASE)
         val match = memPattern.find(message) ?: return null
         
         val value = match.groupValues[1].toDoubleOrNull() ?: return null
@@ -73,9 +97,9 @@ class MetricsExtractor {
         
         val memoryMb = when (unit) {
             "GB" -> value * 1024
-            "MB" -> value
-            "M" -> value
-            else -> value / (1024 * 1024)
+            "MB", "M" -> value
+            "K" -> value / 1024
+            else -> value
         }
         
         return Metric(
@@ -86,25 +110,83 @@ class MetricsExtractor {
         ).also { metrics.add(it) }
     }
     
+    private fun extractCpu(message: String, logEntry: LogEntry): Metric? {
+        val cpuPattern = Regex("(?:CPU|cpu)[:\\s]+(\\d+\\.?\\d*)\\s*%", RegexOption.IGNORE_CASE)
+        val match = cpuPattern.find(message) ?: return null
+        
+        val cpu = match.groupValues[1].toDoubleOrNull() ?: return null
+        
+        return Metric(
+            type = MetricType.CPU,
+            value = cpu,
+            timestamp = logEntry.timestamp,
+            deviceId = logEntry.deviceId
+        ).also { metrics.add(it) }
+    }
+    
+    private fun extractJank(message: String, logEntry: LogEntry): Metric? {
+        if (message.contains("jank") || message.contains("dropped frame") || message.contains("slow frame")) {
+            return Metric(
+                type = MetricType.JANK_FRAMES,
+                value = 1.0,
+                timestamp = logEntry.timestamp,
+                deviceId = logEntry.deviceId
+            ).also { metrics.add(it) }
+        }
+        return null
+    }
+    
     fun getAllMetrics(): List<Metric> = metrics.toList()
     
     fun getMetricsByType(type: MetricType): List<Metric> = 
         metrics.filter { it.type == type }
     
     fun getAverageFps(): Double? {
-        val fpsMetrics = getMetricsByType(MetricType.FPS)
-        return if (fpsMetrics.isNotEmpty()) fpsMetrics.map { it.value }.average() else null
+        return if (fpsHistory.isNotEmpty()) fpsHistory.average() else null
     }
     
     fun getMinFps(): Double? {
-        val fpsMetrics = getMetricsByType(MetricType.FPS)
-        return fpsMetrics.minOfOrNull { it.value }
+        return fpsHistory.minOrNull()
+    }
+    
+    fun getMaxFps(): Double? {
+        return fpsHistory.maxOrNull()
+    }
+    
+    fun getFpsStability(): Double {
+        if (fpsHistory.size < 2) return 100.0
+        val avg = fpsHistory.average()
+        val variance = fpsHistory.map { (it - avg) * (it - avg) }.average()
+        val stdDev = kotlin.math.sqrt(variance)
+        return (1 - (stdDev / avg)) * 100
     }
     
     fun getFrameDrops(): Int {
-        val frameTimeMetrics = getMetricsByType(MetricType.FRAME_TIME)
-        return frameTimeMetrics.count { it.value > 16.67 } // Above 60fps threshold
+        return frameTimes.count { it > 16.67 }
     }
     
-    fun clear() = metrics.clear()
+    fun getSlowFrames(): Int {
+        return frameTimes.count { it > 33.33 }
+    }
+    
+    fun getAverageFrameTime(): Double? {
+        return if (frameTimes.isNotEmpty()) frameTimes.average() else null
+    }
+    
+    fun getMemoryUsage(): Double? {
+        val memMetrics = getMetricsByType(MetricType.MEMORY)
+        return memMetrics.lastOrNull()?.value
+    }
+    
+    fun getPeakMemory(): Double? {
+        return getMetricsByType(MetricType.MEMORY).maxOfOrNull { it.value }
+    }
+    
+    fun getFpsHistory(): List<Double> = fpsHistory.toList()
+    
+    fun clear() {
+        metrics.clear()
+        fpsHistory.clear()
+        frameTimes.clear()
+    }
 }

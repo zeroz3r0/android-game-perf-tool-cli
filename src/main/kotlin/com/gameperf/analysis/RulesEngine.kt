@@ -96,4 +96,6 @@ class RulesEngine {
     }
     
     fun getRules(): List<Rule> = rules.toList()
+    
+    fun getLoadedRules(): List<Rule> = rules.toList()
 }
