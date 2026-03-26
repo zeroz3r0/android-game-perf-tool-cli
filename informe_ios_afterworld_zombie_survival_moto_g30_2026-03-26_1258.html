@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Informe - com.vivastudios.afterworld.zombie.survival</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);min-height:100vh;color:#fff;padding:20px}
+.container{max-width:900px;margin:0 auto}
+h1{text-align:center;margin-bottom:10px;background:linear-gradient(90deg,#00d4ff,#7b2cbf);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:1.8rem}
+.subtitle{text-align:center;color:#888;margin-bottom:30px}
+.grade{text-align:center;font-size:7rem;font-weight:bold;color:#ff0044;text-shadow:0 0 40px #ff0044;margin:20px 0}
+.card{background:rgba(255,255,255,0.05);border-radius:16px;padding:20px;margin-bottom:16px;border:1px solid rgba(255,255,255,0.1)}
+.card h2{color:#00d4ff;margin-bottom:16px;font-size:1.2rem}
+.stat{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.1)}
+.stat:last-child{border-bottom:none}
+.stat-label{color:#888}.stat-value{font-weight:bold}
+.good{color:#00ff88}.warning{color:#ffaa00}.bad{color:#ff0044}
+.chart-container{height:250px;background:rgba(0,0,0,0.3);border-radius:8px;padding:10px;margin-top:10px;position:relative}
+.ptable{width:100%;border-collapse:collapse;margin-top:10px}
+.ptable td,.ptable th{padding:8px 12px;text-align:center;border:1px solid rgba(255,255,255,0.1)}
+.ptable th{color:#00d4ff;font-size:0.85em}.ptable td{font-weight:bold;font-size:1.1em}
+@media print{body{background:#fff;color:#000}.card{border:1px solid #ddd;background:#fafafa}.grade{text-shadow:none}}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Informe de Rendimiento</h1>
+<p class="subtitle">com.vivastudios.afterworld.zombie.survival | 26/03/2026 12:54</p>
+<div class="grade">F</div>
+<p style="text-align:center;color:#888;margin-bottom:30px">Nota de Rendimiento</p>
+
+<div class="card">
+    <h2>Dispositivo</h2>
+    <div class="stat"><span class="stat-label">Modelo</span><span class="stat-value">moto g(30)</span></div>
+    <div class="stat"><span class="stat-label">CPU</span><span class="stat-value">qcom bengal</span></div>
+    <div class="stat"><span class="stat-label">GPU</span><span class="stat-value">adreno</span></div>
+    <div class="stat"><span class="stat-label">RAM</span><span class="stat-value">3 GB</span></div>
+    <div class="stat"><span class="stat-label">Cores</span><span class="stat-value">8</span></div>
+</div>
+
+<div class="card">
+    <h2>Sesion de juego</h2>
+    <div class="stat"><span class="stat-label">Duracion</span><span class="stat-value">4m 0s</span></div>
+    <div class="stat"><span class="stat-label">Lecturas FPS</span><span class="stat-value">13</span></div>
+    <div class="stat"><span class="stat-label">Eventos capturados</span><span class="stat-value">0</span></div>
+    <div class="stat"><span class="stat-label">Frame drops</span><span class="stat-value good">0</span></div>
+</div>
+
+
+<div class="card">
+    <h2>FPS</h2>
+    <table class="ptable">
+        <tr><th>P1</th><th>P5</th><th>P50</th><th>P90</th><th>P99</th><th>Min</th><th>Max</th><th>Avg</th></tr>
+        <tr>
+            <td class="bad">11</td>
+            <td class="bad">11</td>
+            <td>18</td><td>29</td><td>29</td>
+            <td class="bad">11</td><td class="good">29</td>
+            <td style="color:#ff0044;font-size:1.3em">20</td>
+        </tr>
+    </table>
+    <div class="chart-container"><canvas id="fpsChart"></canvas></div>
+</div>
+
+
+<div class="card">
+    <h2>Frame Times</h2>
+    <table class="ptable">
+        <tr><th>P50</th><th>P90</th><th>P95</th><th>P99</th><th>Avg</th></tr>
+        <tr>
+            <td>33,6ms</td><td>83,5ms</td>
+            <td>100,2ms</td>
+            <td class="bad">200,7ms</td>
+            <td>50,7ms</td>
+        </tr>
+    </table>
+    <div class="chart-container"><canvas id="ftChart"></canvas></div>
+</div>
+
+<div class="card">
+    <h2>Memoria</h2>
+    <div class="stat"><span class="stat-label">Inicio</span><span class="stat-value">307MB (Native:26MB Java:21MB)</span></div>
+    <div class="stat"><span class="stat-label">Final</span><span class="stat-value">1039MB (Native:98MB Java:10MB)</span></div>
+    <div class="stat"><span class="stat-label">Pico</span><span class="stat-value good">1041MB</span></div>
+    <div class="chart-container"><canvas id="memChart"></canvas></div>
+</div>
+
+<div class="card">
+    <h2>CPU y GPU</h2>
+    <div class="stat"><span class="stat-label">CPU promedio</span><span class="stat-value good">40%</span></div>
+    <div class="stat"><span class="stat-label">CPU maximo</span><span class="stat-value">87%</span></div>
+    <div class="stat"><span class="stat-label">GPU promedio</span><span class="stat-value">3%</span></div>
+    
+    <div style="margin-top:12px">
+        <span class="stat-label">Uso por core:</span>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+            <span style='background:rgba(0,212,255,0.2488938053097345);padding:4px 10px;border-radius:6px;font-size:0.8em'>C0: 24%</span><span style='background:rgba(0,212,255,0.23535911602209944);padding:4px 10px;border-radius:6px;font-size:0.8em'>C1: 23%</span><span style='background:rgba(0,212,255,0.24208772903942255);padding:4px 10px;border-radius:6px;font-size:0.8em'>C2: 24%</span><span style='background:rgba(0,212,255,0.23786142935079105);padding:4px 10px;border-radius:6px;font-size:0.8em'>C3: 23%</span><span style='background:rgba(0,212,255,0.47368421052631576);padding:4px 10px;border-radius:6px;font-size:0.8em'>C4: 47%</span><span style='background:rgba(0,212,255,0.5013462574044157);padding:4px 10px;border-radius:6px;font-size:0.8em'>C5: 50%</span><span style='background:rgba(0,212,255,0.4865010799136069);padding:4px 10px;border-radius:6px;font-size:0.8em'>C6: 48%</span><span style='background:rgba(0,212,255,0.4938072159396876);padding:4px 10px;border-radius:6px;font-size:0.8em'>C7: 49%</span>
+        </div>
+    </div>
+    <div class="chart-container"><canvas id="cpuGpuChart"></canvas></div>
+</div>
+
+<div class="card">
+    <h2>Temperatura</h2>
+    <div class="stat"><span class="stat-label">CPU max</span><span class="stat-value bad">62C</span></div>
+    <div class="chart-container"><canvas id="tempChart"></canvas></div>
+</div>
+
+<div class="card">
+    <h2>Bateria</h2>
+    <div class="stat"><span class="stat-label">Inicio</span><span class="stat-value">65%</span></div>
+    <div class="stat"><span class="stat-label">Final</span><span class="stat-value">65%</span></div>
+    <div class="stat"><span class="stat-label">Consumo</span><span class="stat-value good">0% (0,0%/min)</span></div>
+    <div class="stat"><span class="stat-label">Temperatura</span><span class="stat-value">35.3C</span></div>
+</div>
+
+
+        <div class="card" style="border-left:4px solid #7b2cbf">
+            <h2>Configuracion grafica</h2>
+            
+            <div style="background:rgba(0,212,255,0.08);padding:14px;margin:8px 0;border-radius:8px;border-left:3px solid #00d4ff">
+                    <strong style="color:#00d4ff">Subida brusca FPS a los 94s</strong>
+                    <div style="color:#ccc;font-size:0.9em">FPS: 13 -> 26 (+13)</div>
+                    <div style="color:#888;font-size:0.8em">Posible cambio de calidad grafica (texturas, sombras, efectos).</div>
+                </div><div style="background:rgba(0,212,255,0.08);padding:14px;margin:8px 0;border-radius:8px;border-left:3px solid #00d4ff">
+                    <strong style="color:#00d4ff">Subida brusca FPS a los 112s</strong>
+                    <div style="color:#ccc;font-size:0.9em">FPS: 18 -> 27 (+9)</div>
+                    <div style="color:#888;font-size:0.8em">Posible cambio de calidad grafica (texturas, sombras, efectos).</div>
+                </div><div style="background:rgba(0,212,255,0.08);padding:14px;margin:8px 0;border-radius:8px;border-left:3px solid #00d4ff">
+                    <strong style="color:#00d4ff">Subida brusca FPS a los 185s</strong>
+                    <div style="color:#ccc;font-size:0.9em">FPS: 17 -> 29 (+12)</div>
+                    <div style="color:#888;font-size:0.8em">Posible cambio de calidad grafica (texturas, sombras, efectos).</div>
+                </div>
+        </div>
+
+
+
+        <div class="card" style="border-left:4px solid #ff6600">
+            <h2>Caidas de FPS (2)</h2>
+            <div style="background:rgba(255,102,0,0.1);padding:12px;margin:8px 0;border-radius:8px;border-left:3px solid #ff6600">
+                    <span style="color:#ff6600;font-weight:700">130s</span> - <span style="color:#ff0044;font-weight:700">12 FPS</span>
+                    
+                </div><div style="background:rgba(255,102,0,0.1);padding:12px;margin:8px 0;border-radius:8px;border-left:3px solid #ff6600">
+                    <span style="color:#ff6600;font-weight:700">167s</span> - <span style="color:#ff0044;font-weight:700">12 FPS</span>
+                    
+                </div>
+        </div>
+
+<div class="card">
+    <h2>Problemas</h2>
+    <div style="background:rgba(255,255,255,0.03);border-left:4px solid #ff0044;padding:16px;margin:12px 0;border-radius:8px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                <strong style="color:#ff0044;font-size:1.1em">FPS promedio de 20 - Muy bajo</strong>
+                <span style="background:#ff0044;color:#000;padding:2px 10px;border-radius:12px;font-size:0.75em;font-weight:700">Severidad: Alto</span>
+            </div>
+            <div style="color:#ccc;margin-bottom:12px;line-height:1.6;font-size:0.9em"><strong style="color:#00d4ff">Que significa:</strong> El juego renderiza menos de 30 imagenes por segundo. El movimiento se ve entrecortado y la respuesta a los controles tiene retraso visible.</div>
+            <div style="background:rgba(0,212,255,0.08);padding:12px;border-radius:6px;border-left:3px solid #00d4ff">
+                <strong style="color:#00d4ff;font-size:0.85em">Solucion recomendada:</strong>
+                <div style="color:#aaa;margin-top:6px;line-height:1.6;font-size:0.85em">1) Bajar la calidad grafica en ajustes del juego. 2) Cerrar apps en segundo plano. 3) Activar modo rendimiento si disponible. 4) Desactivar efectos de post-procesado.</div>
+            </div>
+        </div><div style="background:rgba(255,255,255,0.03);border-left:4px solid #ffaa00;padding:16px;margin:12px 0;border-radius:8px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                <strong style="color:#ffaa00;font-size:1.1em">Estabilidad del 55%</strong>
+                <span style="background:#ffaa00;color:#000;padding:2px 10px;border-radius:12px;font-size:0.75em;font-weight:700">Severidad: Medio</span>
+            </div>
+            <div style="color:#ccc;margin-bottom:12px;line-height:1.6;font-size:0.9em"><strong style="color:#00d4ff">Que significa:</strong> Los FPS varian mucho durante la partida causando tirones intermitentes.</div>
+            <div style="background:rgba(0,212,255,0.08);padding:12px;border-radius:6px;border-left:3px solid #00d4ff">
+                <strong style="color:#00d4ff;font-size:0.85em">Solucion recomendada:</strong>
+                <div style="color:#aaa;margin-top:6px;line-height:1.6;font-size:0.85em">1) Comprobar temperatura del dispositivo. 2) Liberar RAM cerrando apps. 3) Puede ser problema de optimizacion del juego.</div>
+            </div>
+        </div><div style="background:rgba(255,255,255,0.03);border-left:4px solid #ff0044;padding:16px;margin:12px 0;border-radius:8px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                <strong style="color:#ff0044;font-size:1.1em">Crecimiento de 732 MB</strong>
+                <span style="background:#ff0044;color:#000;padding:2px 10px;border-radius:12px;font-size:0.75em;font-weight:700">Severidad: Alto</span>
+            </div>
+            <div style="color:#ccc;margin-bottom:12px;line-height:1.6;font-size:0.9em"><strong style="color:#00d4ff">Que significa:</strong> La memoria crecio 732MB sin bajar. Posible memory leak del juego.</div>
+            <div style="background:rgba(0,212,255,0.08);padding:12px;border-radius:6px;border-left:3px solid #00d4ff">
+                <strong style="color:#00d4ff;font-size:0.85em">Solucion recomendada:</strong>
+                <div style="color:#aaa;margin-top:6px;line-height:1.6;font-size:0.85em">1) Es un BUG del juego. 2) Reiniciar el juego periodicamente. 3) Reportar al desarrollador.</div>
+            </div>
+        </div><div style="background:rgba(255,255,255,0.03);border-left:4px solid #ff0044;padding:16px;margin:12px 0;border-radius:8px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                <strong style="color:#ff0044;font-size:1.1em">Temperatura maxima: 62C</strong>
+                <span style="background:#ff0044;color:#000;padding:2px 10px;border-radius:12px;font-size:0.75em;font-weight:700">Severidad: Alto</span>
+            </div>
+            <div style="color:#ccc;margin-bottom:12px;line-height:1.6;font-size:0.9em"><strong style="color:#00d4ff">Que significa:</strong> El dispositivo alcanzo 62C. A partir de ~42C se activa el thermal throttling que reduce CPU/GPU.</div>
+            <div style="background:rgba(0,212,255,0.08);padding:12px;border-radius:6px;border-left:3px solid #00d4ff">
+                <strong style="color:#00d4ff;font-size:0.85em">Solucion recomendada:</strong>
+                <div style="color:#aaa;margin-top:6px;line-height:1.6;font-size:0.85em">1) Quitar funda del dispositivo. 2) No jugar mientras carga. 3) Jugar en ambiente fresco. 4) Hacer pausas de 5 min cada 15-20 min.</div>
+            </div>
+        </div>
+</div>
+
+</div>
+
+<script>
+const chartDefaults = {responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#888'}}},scales:{x:{ticks:{color:'#666',maxTicksLimit:15},grid:{color:'rgba(255,255,255,0.05)'}},y:{ticks:{color:'#888'},grid:{color:'rgba(255,255,255,0.08)'}}}};
+
+
+new Chart(document.getElementById('fpsChart'),{type:'line',data:{labels:["1s","19s","37s","56s","75s","94s","112s","130s","148s","167s","185s","204s","222s"],datasets:[{label:'FPS',data:[15,18,11,14,16,26,27,12,29,12,29,26,29],borderColor:'#00d4ff',backgroundColor:'rgba(0,212,255,0.1)',fill:true,tension:0.3,pointRadius:1}]},options:{...chartDefaults,plugins:{...chartDefaults.plugins,annotation:{annotations:{line30:{type:'line',yMin:30,yMax:30,borderColor:'#ff0044',borderWidth:1,borderDash:[5,5]},line60:{type:'line',yMin:60,yMax:60,borderColor:'#00ff88',borderWidth:1,borderDash:[5,5]}}}}}});
+
+
+
+new Chart(document.getElementById('ftChart'),{type:'bar',data:{labels:['<8ms','8-16ms','16-33ms','33-50ms','50-100ms','>100ms'],datasets:[{label:'Frames',data:[0,6,355,745,396,110],backgroundColor:['#00ff88','#88ff00','#ffaa00','#ff6600','#ff0044','#cc0033']}]},options:{...chartDefaults}});
+
+
+
+new Chart(document.getElementById('memChart'),{type:'line',data:{labels:["1s","19s","37s","56s","75s","94s","112s","130s","148s","167s","185s","204s","222s"],datasets:[{label:'Total PSS',data:[519,795,837,833,879,914,932,941,935,1016,1031,1039,1041],borderColor:'#00d4ff',tension:0.3,pointRadius:1},{label:'Native Heap',data:[32,71,89,76,74,78,82,85,86,96,97,98,98],borderColor:'#ff6600',tension:0.3,pointRadius:1},{label:'Java Heap',data:[8,11,10,10,10,9,10,10,10,10,10,10,10],borderColor:'#00ff88',tension:0.3,pointRadius:1}]},options:{...chartDefaults}});
+
+
+
+new Chart(document.getElementById('cpuGpuChart'),{type:'line',data:{labels:["1s","19s","37s","56s","75s","94s","112s","130s","148s","167s","185s","204s","222s"],datasets:[{label:'CPU %',data:[52,87,50,80,25,22,25,18,26,28,29,37,36],borderColor:'#00d4ff',tension:0.3,pointRadius:1},{label:'GPU %',data:[3,3,3,3,3,3,3,3,3,3,3,3,3],borderColor:'#7b2cbf',tension:0.3,pointRadius:1}]},options:{...chartDefaults,scales:{...chartDefaults.scales,y:{...chartDefaults.scales.y,min:0,max:100}}}});
+
+
+
+new Chart(document.getElementById('tempChart'),{type:'line',data:{labels:["1s","19s","37s","56s","75s","94s","112s","130s","148s","167s","185s","204s","222s"],datasets:[{label:'CPU',data:[52,62,58,null,49,47,49,49,51,49,54,56,null],borderColor:'#ff0044',tension:0.3,pointRadius:1},{label:'GPU',data:[45,49,56,null,47,44,52,56,48,48,52,54,null],borderColor:'#ff6600',tension:0.3,pointRadius:1},{label:'Skin',data:[38,39,40,null,40,39,39,40,40,39,40,41,null],borderColor:'#ffaa00',tension:0.3,pointRadius:1}]},options:{...chartDefaults}});
+
+</script>
+</body>
+</html>

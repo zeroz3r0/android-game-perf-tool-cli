@@ -22,3 +22,12 @@ application {
 kotlin {
     jvmToolchain(8)
 }
+
+tasks.jar {
+    manifest {
+        attributes["Main-Class"] = "com.gameperf.MainKt"
+    }
+    // Include dependencies in the JAR
+    from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}

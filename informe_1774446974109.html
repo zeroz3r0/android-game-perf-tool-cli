@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe - com.vivastudios.afterworld.zombie.survival</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; color: #fff; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { text-align: center; margin-bottom: 10px; background: linear-gradient(90deg, #00d4ff, #7b2cbf); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #888; margin-bottom: 30px; }
+        .grade { text-align: center; font-size: 8rem; font-weight: bold; color: #00ff88; text-shadow: 0 0 50px #00ff88; margin: 20px 0; }
+        .grade-label { text-align: center; color: #888; font-size: 1.2rem; margin-bottom: 30px; }
+        .card { background: rgba(255,255,255,0.05); border-radius: 16px; padding: 20px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.1); }
+        .card h2 { color: #00d4ff; margin-bottom: 16px; font-size: 1.2rem; }
+        .stat { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .stat:last-child { border-bottom: none; }
+        .stat-label { color: #888; }
+        .stat-value { font-weight: bold; }
+        .stat-value.good { color: #00ff88; }
+        .stat-value.warning { color: #ffaa00; }
+        .stat-value.bad { color: #ff0044; }
+        .chart { height: 150px; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; margin-top: 10px; }
+        .chart canvas { width: 100%; height: 100%; }
+        .problems { margin-top: 20px; }
+        .summary { background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(123,44,191,0.1)); padding: 20px; border-radius: 16px; margin-top: 20px; }
+        .summary h3 { color: #00d4ff; margin-bottom: 12px; }
+        .summary p { line-height: 1.8; color: #ccc; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Informe de Rendimiento</h1>
+        <p class="subtitle">com.vivastudios.afterworld.zombie.survival</p>
+        
+        <div class="grade">A</div>
+        <p class="grade-label">Nota de Rendimiento</p>
+        
+        <div class="card">
+            <h2>📱 Dispositivo</h2>
+            <div class="stat"><span class="stat-label">Modelo</span><span class="stat-value">Pixel 7a</span></div>
+            <div class="stat"><span class="stat-label">RAM</span><span class="stat-value">7 GB</span></div>
+            <div class="stat"><span class="stat-label">CPU</span><span class="stat-value">lynx gs201</span></div>
+            <div class="stat"><span class="stat-label">Núcleos</span><span class="stat-value">8</span></div>
+            <div class="stat"><span class="stat-label">Resolución</span><span class="stat-value">Physical size: 1080x2400</span></div>
+        </div>
+        
+        <div class="card">
+            <h2>🎮 FPS</h2>
+            <div class="stat"><span class="stat-label">Promedio</span><span class="stat-value good">60 FPS</span></div>
+            <div class="stat"><span class="stat-label">Mínimo</span><span class="stat-value">60 FPS</span></div>
+            <div class="stat"><span class="stat-label">Máximo</span><span class="stat-value">60 FPS</span></div>
+            <div class="stat"><span class="stat-label">Estabilidad</span><span class="stat-value good">100%</span></div>
+            <div class="stat"><span class="stat-label">Frame Drops</span><span class="stat-value good">2</span></div>
+        </div>
+        
+        <div class="card">
+            <h2>💾 Memoria</h2>
+            <div class="stat"><span class="stat-label">Inicio</span><span class="stat-value">1439 MB</span></div>
+            <div class="stat"><span class="stat-label">Final</span><span class="stat-value">1750 MB</span></div>
+            <div class="stat"><span class="stat-label">Pico</span><span class="stat-value warning">1797 MB</span></div>
+            <div class="stat"><span class="stat-label">Crecimiento</span><span class="stat-value warning">311 MB</span></div>
+        </div>
+        
+        <div class="card">
+            <h2>🔋 Batería</h2>
+            <div class="stat"><span class="stat-label">Inicio</span><span class="stat-value">21%</span></div>
+            <div class="stat"><span class="stat-label">Fin</span><span class="stat-value">21%</span></div>
+            <div class="stat"><span class="stat-label">Consumo</span><span class="stat-value good">0%</span></div>
+        </div>
+        
+        <div class="card">
+            <h2>📝 Eventos</h2>
+            <div class="stat"><span class="stat-label">Errors</span><span class="stat-value good">0</span></div>
+            <div class="stat"><span class="stat-label">Warnings</span><span class="stat-value good">0</span></div>
+            <div class="stat"><span class="stat-label">GC Events</span><span class="stat-value good">0</span></div>
+        </div>
+        
+        <div class="card problems">
+            <h2>⚠️ Problemas</h2>
+            <div style="background:rgba(255,0,68,0.1);border-left:4px solid #ffaa00;padding:12px;margin:8px 0;border-radius:4px">
+    <strong style="color:#ffaa00">Pico de 1797 MB - Alto</strong>
+</div>
+        </div>
+        
+        <div class="summary">
+            <h3>📋 Resumen</h3>
+            <p>El análisis de <strong>com.vivastudios.afterworld.zombie.survival</strong> en <strong>Pixel 7a</strong> durante 60 segundos muestra un rendimiento de <strong>60 FPS</strong> con una estabilidad del 100%.
+
+❌ <strong>Se detectaron 1 problema(s):</strong>
+<ul><li><strong>MEMORIA_ALTA:</strong> Pico de 1797 MB - Alto</li></ul>
+⚠️ Hay problemas de memoria que pueden causar crashes.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,121 @@
+{
+  "version": "1.0",
+  "description": "Default performance rules for Android game analysis",
+  "rules": [
+    {
+      "id": "low_fps_threshold",
+      "name": "Low FPS Detection",
+      "pattern": "FPS[:\\s]+(\\d+\\.?\\d*)",
+      "metricType": "FPS",
+      "severity": "ERROR",
+      "threshold": 30,
+      "description": "Detects when FPS drops below 30 (unplayable)"
+    },
+    {
+      "id": "medium_fps_warning",
+      "name": "Medium FPS Warning",
+      "pattern": "FPS[:\\s]+(\\d+\\.?\\d*)",
+      "metricType": "FPS",
+      "severity": "WARNING",
+      "threshold": 45,
+      "description": "Warns when FPS drops below 45 (suboptimal experience)"
+    },
+    {
+      "id": "high_frame_time",
+      "name": "High Frame Time",
+      "pattern": "(?:Frame[\\s-]?time|frame)[:\\s]+(\\d+\\.?\\d*)\\s*ms?",
+      "metricType": "FRAME_TIME",
+      "severity": "ERROR",
+      "threshold": 33.33,
+      "description": "Detects frame times above 33.33ms (below 30 FPS)"
+    },
+    {
+      "id": "high_memory_usage",
+      "name": "High Memory Usage",
+      "pattern": "(?:Memory|mem|MEM)[:\\s]+(\\d+\\.?\\d*)\\s*(?:MB|Gmb)?",
+      "metricType": "MEMORY",
+      "severity": "WARNING",
+      "threshold": 512,
+      "description": "Warns when memory usage exceeds 512MB"
+    },
+    {
+      "id": "critical_memory",
+      "name": "Critical Memory Usage",
+      "pattern": "(?:Memory|mem|MEM)[:\\s]+(\\d+\\.?\\d*)\\s*(?:MB|Gmb)?",
+      "metricType": "MEMORY",
+      "severity": "ERROR",
+      "threshold": 768,
+      "description": "Critical memory usage above 768MB (risk of OOM)"
+    },
+    {
+      "id": "gc_pressure",
+      "name": "Garbage Collection Pressure",
+      "pattern": "GC_(FOR_MALLOC|CONCURRENT|EXT_ALLOC_SPEED|HRDMODE)",
+      "metricType": "MEMORY",
+      "severity": "WARNING",
+      "description": "Detects frequent GC events that cause stuttering"
+    },
+    {
+      "id": "dropped_frames",
+      "name": "Dropped Frames",
+      "pattern": "(?:dropped|missed|skipped)\\s+(?:frame|frames)[:\\s]*(\\d+)",
+      "metricType": "FRAME_TIME",
+      "severity": "WARNING",
+      "description": "Detects dropped/_skipped frames in the game loop"
+    },
+    {
+      "id": "cpu_throttling",
+      "name": "CPU Throttling Detection",
+      "pattern": "(?:CPU|cpu).*(?:throttle|throttl|thermal|hot)",
+      "metricType": "CPU",
+      "severity": "WARNING",
+      "description": "Detects CPU throttling due to thermal issues"
+    },
+    {
+      "id": "jank_detected",
+      "name": "Jank/Stutter Detection",
+      "pattern": "(?:jank|stutter|freeze|hitch)",
+      "metricType": "FRAME_TIME",
+      "severity": "ERROR",
+      "description": "Detects visible hitches and stutters in gameplay"
+    },
+    {
+      "id": "vsync_issue",
+      "name": "VSync Issues",
+      "pattern": "(?:vsync|VSync).*(?:issue|error|drop|fail)",
+      "metricType": "FRAME_TIME",
+      "severity": "INFO",
+      "description": "Detects potential VSync issues"
+    },
+    {
+      "id": "shader_compilation",
+      "name": "Shader Compilation Stutter",
+      "pattern": "(?:shader|SPV).*(?:compile|compile|build).*(?:stall|frame)",
+      "metricType": "FRAME_TIME",
+      "severity": "WARNING",
+      "description": "Detects shader compilation causing frame drops"
+    },
+    {
+      "id": "buffer_overflow",
+      "name": "Buffer Overflow",
+      "pattern": "(?:buffer|queue).*(?:overflow|full|overflow)",
+      "metricType": "MEMORY",
+      "severity": "ERROR",
+      "description": "Detects buffer overflow issues"
+    }
+  ],
+  "globalThresholds": {
+    "fps": {
+      "minimum": 30,
+      "target": 60
+    },
+    "frameTime": {
+      "maxMs": 16.67,
+      "warningMs": 20
+    },
+    "memory": {
+      "warningMB": 512,
+      "criticalMB": 768
+    }
+  }
+}

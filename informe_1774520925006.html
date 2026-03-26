@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe - com.vivastudios.afterworld.zombie.survival</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; color: #fff; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { text-align: center; margin-bottom: 10px; background: linear-gradient(90deg, #00d4ff, #7b2cbf); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #888; margin-bottom: 30px; }
+        .grade { text-align: center; font-size: 8rem; font-weight: bold; color: #ff0044; text-shadow: 0 0 50px #ff0044; margin: 20px 0; }
+        .grade-label { text-align: center; color: #888; font-size: 1.2rem; margin-bottom: 30px; }
+        .card { background: rgba(255,255,255,0.05); border-radius: 16px; padding: 20px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.1); }
+        .card h2 { color: #00d4ff; margin-bottom: 16px; font-size: 1.2rem; }
+        .stat { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .stat:last-child { border-bottom: none; }
+        .stat-label { color: #888; }
+        .stat-value { font-weight: bold; }
+        .stat-value.good { color: #00ff88; }
+        .stat-value.warning { color: #ffaa00; }
+        .stat-value.bad { color: #ff0044; }
+        .chart { height: 150px; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; margin-top: 10px; }
+        .chart canvas { width: 100%; height: 100%; }
+        .problems { margin-top: 20px; }
+        .summary { background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(123,44,191,0.1)); padding: 20px; border-radius: 16px; margin-top: 20px; }
+        .summary h3 { color: #00d4ff; margin-bottom: 12px; }
+        .summary p { line-height: 1.8; color: #ccc; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Informe de Rendimiento</h1>
+        <p class="subtitle">com.vivastudios.afterworld.zombie.survival</p>
+        
+        <div class="grade">F</div>
+        <p class="grade-label">Nota de Rendimiento</p>
+        
+        <div class="card">
+            <h2>📱 Dispositivo</h2>
+            <div class="stat"><span class="stat-label">Modelo</span><span class="stat-value">moto g(30)</span></div>
+            <div class="stat"><span class="stat-label">RAM</span><span class="stat-value">3 GB</span></div>
+            <div class="stat"><span class="stat-label">CPU</span><span class="stat-value">qcom bengal</span></div>
+            <div class="stat"><span class="stat-label">Núcleos</span><span class="stat-value">8</span></div>
+            <div class="stat"><span class="stat-label">Resolución</span><span class="stat-value">Physical size: 720x1600</span></div>
+        </div>
+        
+        <div class="card">
+            <h2>🎮 FPS</h2>
+            <div class="stat"><span class="stat-label">Promedio</span><span class="stat-value bad">11 FPS</span></div>
+            <div class="stat"><span class="stat-label">Mínimo</span><span class="stat-value">11 FPS</span></div>
+            <div class="stat"><span class="stat-label">Máximo</span><span class="stat-value">11 FPS</span></div>
+            <div class="stat"><span class="stat-label">Estabilidad</span><span class="stat-value good">100%</span></div>
+            <div class="stat"><span class="stat-label">Frame Drops</span><span class="stat-value bad">86</span></div>
+        </div>
+        
+        <div class="card">
+            <h2>💾 Memoria</h2>
+            <div class="stat"><span class="stat-label">Inicio</span><span class="stat-value">1093 MB</span></div>
+            <div class="stat"><span class="stat-label">Final</span><span class="stat-value">1092 MB</span></div>
+            <div class="stat"><span class="stat-label">Pico</span><span class="stat-value good">1092 MB (29%)</span></div>
+            <div class="stat"><span class="stat-label">RAM Total</span><span class="stat-value">3 GB</span></div>
+            <div class="stat"><span class="stat-label">Crecimiento</span><span class="stat-value good">-1 MB</span></div>
+        </div>
+        
+        <div class="card">
+            <h2>🔋 Batería</h2>
+            <div class="stat"><span class="stat-label">Inicio</span><span class="stat-value">54%</span></div>
+            <div class="stat"><span class="stat-label">Fin</span><span class="stat-value">54%</span></div>
+            <div class="stat"><span class="stat-label">Consumo</span><span class="stat-value good">0%</span></div>
+        </div>
+        
+        <div class="card">
+            <h2>⏱ Sesion de juego</h2>
+            <div class="stat"><span class="stat-label">Duracion</span><span class="stat-value">0m 7s</span></div>
+            <div class="stat"><span class="stat-label">Lecturas FPS</span><span class="stat-value">3</span></div>
+            <div class="stat"><span class="stat-label">Eventos capturados</span><span class="stat-value">1500</span></div>
+        </div>
+        
+        <div class="card">
+            <h2>📝 Eventos del sistema</h2>
+            <div class="stat"><span class="stat-label">Errores</span><span class="stat-value good">0</span></div>
+            <div class="stat"><span class="stat-label">Advertencias</span><span class="stat-value good">6</span></div>
+            <div class="stat"><span class="stat-label">Recolector de basura (GC)</span><span class="stat-value good">6</span></div>
+        </div>
+        
+        
+        
+        
+        <div class="card" style="border-left:4px solid #ffaa00;">
+            <h2>⚠ Advertencias detectadas</h2>
+            <p style="color:#888;font-size:0.85em;margin-bottom:16px;">
+                Advertencias que se repitieron durante la sesion. No son errores criticos pero pueden afectar al rendimiento.
+            </p>
+            
+                <div style="background:rgba(255,170,0,0.08);padding:16px;margin:10px 0;border-radius:8px;border-left:3px solid #ffaa00;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                        <span style="color:#00d4ff;font-weight:700;font-size:1em;">🗑️ RECOLECTOR DE BASURA trabajando - puede causar micro-lags si es muy frecuente.</span>
+                        <span style="background:#ffaa00;color:#000;padding:2px 10px;border-radius:12px;font-size:0.75em;font-weight:700;">x3 veces</span>
+                    </div>
+                    <div style="color:#aaa;font-size:0.8em;line-height:1.5;margin-bottom:8px;">
+                        <strong>Que significa:</strong> Evento del sistema detectado durante la sesion de juego. Aunque no siempre es critico, su repeticion puede indicar un problema subyacente que afecta al rendimiento.
+                    </div>
+                    <div style="color:#666;font-size:0.7em;font-family:monospace;word-break:break-all;background:rgba(0,0,0,0.3);padding:8px;border-radius:4px;">
+                        Log original: 03-26 11:28:34.682 18528 18563 W meweatherwidge: Reducing th
+                    </div>
+                </div>
+                
+                <div style="background:rgba(255,170,0,0.08);padding:16px;margin:10px 0;border-radius:8px;border-left:3px solid #ffaa00;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                        <span style="color:#00d4ff;font-weight:700;font-size:1em;">🗑️ RECOLECTOR DE BASURA trabajando - puede causar micro-lags si es muy frecuente.</span>
+                        <span style="background:#ffaa00;color:#000;padding:2px 10px;border-radius:12px;font-size:0.75em;font-weight:700;">x3 veces</span>
+                    </div>
+                    <div style="color:#aaa;font-size:0.8em;line-height:1.5;margin-bottom:8px;">
+                        <strong>Que significa:</strong> Evento del sistema detectado durante la sesion de juego. Aunque no siempre es critico, su repeticion puede indicar un problema subyacente que afecta al rendimiento.
+                    </div>
+                    <div style="color:#666;font-size:0.7em;font-family:monospace;word-break:break-all;background:rgba(0,0,0,0.3);padding:8px;border-radius:4px;">
+                        Log original: 03-26 11:28:42.078 18359 18369 W FuseDaemon: Reducing the nu
+                    </div>
+                </div>
+                
+        </div>
+        
+        
+        
+        
+        
+        <div class="card">
+            <h2>📋 Últimos Eventos Relevantes</h2>
+            <div style="margin-top:12px;max-height:400px;overflow-y:auto;background:rgba(0,0,0,0.3);border-radius:8px;padding:10px;">
+                
+                    <div style="padding:8px;margin:4px 0;background:rgba(255,255,255,0.03);border-radius:4px;border-left:3px solid #888;">
+                        <div style="color:#888;font-weight:600;font-size:0.85em;margin-bottom:4px;">💾 MEMORIA LLENA - El juego necesita más RAM. Puede cerrar el juego.</div>
+                        <div style="color:#888;font-size:0.7em;font-family:monospace;word-break:break-all;">[RAW] 03-26 11:28:32.375  4840  5196 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloo...</div>
+                    </div>
+                    
+                    <div style="padding:8px;margin:4px 0;background:rgba(255,255,255,0.03);border-radius:4px;border-left:3px solid #888;">
+                        <div style="color:#888;font-weight:600;font-size:0.85em;margin-bottom:4px;">💾 MEMORIA LLENA - El juego necesita más RAM. Puede cerrar el juego.</div>
+                        <div style="color:#888;font-size:0.7em;font-family:monospace;word-break:break-all;">[RAW] 03-26 11:28:32.376  4840  5196 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloo...</div>
+                    </div>
+                    
+                    <div style="padding:8px;margin:4px 0;background:rgba(255,255,255,0.03);border-radius:4px;border-left:3px solid #888;">
+                        <div style="color:#888;font-weight:600;font-size:0.85em;margin-bottom:4px;">💾 MEMORIA LLENA - El juego necesita más RAM. Puede cerrar el juego.</div>
+                        <div style="color:#888;font-size:0.7em;font-family:monospace;word-break:break-all;">[RAW] 03-26 11:28:33.168  4840  5196 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloo...</div>
+                    </div>
+                    
+                    <div style="padding:8px;margin:4px 0;background:rgba(255,255,255,0.03);border-radius:4px;border-left:3px solid #888;">
+                        <div style="color:#888;font-weight:600;font-size:0.85em;margin-bottom:4px;">💾 MEMORIA LLENA - El juego necesita más RAM. Puede cerrar el juego.</div>
+                        <div style="color:#888;font-size:0.7em;font-family:monospace;word-break:break-all;">[RAW] 03-26 11:28:33.675  4840  5196 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloo...</div>
+                    </div>
+                    
+                    <div style="padding:8px;margin:4px 0;background:rgba(255,255,255,0.03);border-radius:4px;border-left:3px solid #888;">
+                        <div style="color:#888;font-weight:600;font-size:0.85em;margin-bottom:4px;">💾 MEMORIA LLENA - El juego necesita más RAM. Puede cerrar el juego.</div>
+                        <div style="color:#888;font-size:0.7em;font-family:monospace;word-break:break-all;">[RAW] 03-26 11:28:33.677  4840  5196 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloo...</div>
+                    </div>
+                    
+                    <div style="padding:8px;margin:4px 0;background:rgba(255,255,255,0.03);border-radius:4px;border-left:3px solid #888;">
+                        <div style="color:#888;font-weight:600;font-size:0.85em;margin-bottom:4px;">💾 MEMORIA LLENA - El juego necesita más RAM. Puede cerrar el juego.</div>
+                        <div style="color:#888;font-size:0.7em;font-family:monospace;word-break:break-all;">[RAW] 03-26 11:28:33.699  4840  5196 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloo...</div>
+                    </div>
+                    
+                    <div style="padding:8px;margin:4px 0;background:rgba(255,255,255,0.03);border-radius:4px;border-left:3px solid #ffaa00;">
+                        <div style="color:#ffaa00;font-weight:600;font-size:0.85em;margin-bottom:4px;">🗑️ RECOLECTOR DE BASURA trabajando - puede causar micro-lags si es muy frecuente.</div>
+                        <div style="color:#888;font-size:0.7em;font-family:monospace;word-break:break-all;">[RAW] 03-26 11:28:34.682 18528 18563 W meweatherwidge: Reducing the number of considered missed Gc hist...</div>
+                    </div>
+                    
+                    <div style="padding:8px;margin:4px 0;background:rgba(255,255,255,0.03);border-radius:4px;border-left:3px solid #888;">
+                        <div style="color:#888;font-weight:600;font-size:0.85em;margin-bottom:4px;">💾 MEMORIA LLENA - El juego necesita más RAM. Puede cerrar el juego.</div>
+                        <div style="color:#888;font-size:0.7em;font-family:monospace;word-break:break-all;">[RAW] 03-26 11:28:35.046  4840  5196 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloo...</div>
+                    </div>
+                    
+                    <div style="padding:8px;margin:4px 0;background:rgba(255,255,255,0.03);border-radius:4px;border-left:3px solid #888;">
+                        <div style="color:#888;font-weight:600;font-size:0.85em;margin-bottom:4px;">💾 MEMORIA LLENA - El juego necesita más RAM. Puede cerrar el juego.</div>
+                        <div style="color:#888;font-size:0.7em;font-family:monospace;word-break:break-all;">[RAW] 03-26 11:28:35.684  4840  5196 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloo...</div>
+                    </div>
+                    
+                    <div style="padding:8px;margin:4px 0;background:rgba(255,255,255,0.03);border-radius:4px;border-left:3px solid #888;">
+                        <div style="color:#888;font-weight:600;font-size:0.85em;margin-bottom:4px;">💾 MEMORIA LLENA - El juego necesita más RAM. Puede cerrar el juego.</div>
+                        <div style="color:#888;font-size:0.7em;font-family:monospace;word-break:break-all;">[RAW] 03-26 11:28:35.686  4840  5196 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloo...</div>
+                    </div>
+                    
+                    <div style="padding:8px;margin:4px 0;background:rgba(255,255,255,0.03);border-radius:4px;border-left:3px solid #888;">
+                        <div style="color:#888;font-weight:600;font-size:0.85em;margin-bottom:4px;">💾 MEMORIA LLENA - El juego necesita más RAM. Puede cerrar el juego.</div>
+                        <div style="color:#888;font-size:0.7em;font-family:monospace;word-break:break-all;">[RAW] 03-26 11:28:35.688  4840  5196 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloo...</div>
+                    </div>
+                    
+                    <div style="padding:8px;margin:4px 0;background:rgba(255,255,255,0.03);border-radius:4px;border-left:3px solid #888;">
+                        <div style="color:#888;font-weight:600;font-size:0.85em;margin-bottom:4px;">💾 MEMORIA LLENA - El juego necesita más RAM. Puede cerrar el juego.</div>
+                        <div style="color:#888;font-size:0.7em;font-family:monospace;word-break:break-all;">[RAW] 03-26 11:28:36.186  4840  5196 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloo...</div>
+                    </div>
+                    
+                    <div style="padding:8px;margin:4px 0;background:rgba(255,255,255,0.03);border-radius:4px;border-left:3px solid #888;">
+                        <div style="color:#888;font-weight:600;font-size:0.85em;margin-bottom:4px;">💾 MEMORIA LLENA - El juego necesita más RAM. Puede cerrar el juego.</div>
+                        <div style="color:#888;font-size:0.7em;font-family:monospace;word-break:break-all;">[RAW] 03-26 11:28:36.203  4840  5196 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloo...</div>
+                    </div>
+                    
+                    <div style="padding:8px;margin:4px 0;background:rgba(255,255,255,0.03);border-radius:4px;border-left:3px solid #888;">
+                        <div style="color:#888;font-weight:600;font-size:0.85em;margin-bottom:4px;">💾 MEMORIA LLENA - El juego necesita más RAM. Puede cerrar el juego.</div>
+                        <div style="color:#888;font-size:0.7em;font-family:monospace;word-break:break-all;">[RAW] 03-26 11:28:36.905  4840  5196 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloo...</div>
+                    </div>
+                    
+                    <div style="padding:8px;margin:4px 0;background:rgba(255,255,255,0.03);border-radius:4px;border-left:3px solid #888;">
+                        <div style="color:#888;font-weight:600;font-size:0.85em;margin-bottom:4px;">💾 MEMORIA LLENA - El juego necesita más RAM. Puede cerrar el juego.</div>
+                        <div style="color:#888;font-size:0.7em;font-family:monospace;word-break:break-all;">[RAW] 03-26 11:28:37.601  4840  5196 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloo...</div>
+                    </div>
+                    
+                    <div style="padding:8px;margin:4px 0;background:rgba(255,255,255,0.03);border-radius:4px;border-left:3px solid #888;">
+                        <div style="color:#888;font-weight:600;font-size:0.85em;margin-bottom:4px;">💾 MEMORIA LLENA - El juego necesita más RAM. Puede cerrar el juego.</div>
+                        <div style="color:#888;font-size:0.7em;font-family:monospace;word-break:break-all;">[RAW] 03-26 11:28:38.762  4840  5196 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloo...</div>
+                    </div>
+                    
+                    <div style="padding:8px;margin:4px 0;background:rgba(255,255,255,0.03);border-radius:4px;border-left:3px solid #888;">
+                        <div style="color:#888;font-weight:600;font-size:0.85em;margin-bottom:4px;">💾 MEMORIA LLENA - El juego necesita más RAM. Puede cerrar el juego.</div>
+                        <div style="color:#888;font-size:0.7em;font-family:monospace;word-break:break-all;">[RAW] 03-26 11:28:39.485  4840  5196 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloo...</div>
+                    </div>
+                    
+                    <div style="padding:8px;margin:4px 0;background:rgba(255,255,255,0.03);border-radius:4px;border-left:3px solid #888;">
+                        <div style="color:#888;font-weight:600;font-size:0.85em;margin-bottom:4px;">🗑️ RECOLECTOR DE BASURA trabajando - puede causar micro-lags si es muy frecuente.</div>
+                        <div style="color:#888;font-size:0.7em;font-family:monospace;word-break:break-all;">[RAW] 03-26 11:28:39.709  4044  6969 I zombie.surviva: Explicit concurrent copying GC freed 1776KB Allo...</div>
+                    </div>
+                    
+                    <div style="padding:8px;margin:4px 0;background:rgba(255,255,255,0.03);border-radius:4px;border-left:3px solid #888;">
+                        <div style="color:#888;font-weight:600;font-size:0.85em;margin-bottom:4px;">💾 MEMORIA LLENA - El juego necesita más RAM. Puede cerrar el juego.</div>
+                        <div style="color:#888;font-size:0.7em;font-family:monospace;word-break:break-all;">[RAW] 03-26 11:28:40.165  4840  5196 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloo...</div>
+                    </div>
+                    
+                    <div style="padding:8px;margin:4px 0;background:rgba(255,255,255,0.03);border-radius:4px;border-left:3px solid #888;">
+                        <div style="color:#888;font-weight:600;font-size:0.85em;margin-bottom:4px;">🗑️ RECOLECTOR DE BASURA trabajando - puede causar micro-lags si es muy frecuente.</div>
+                        <div style="color:#888;font-size:0.7em;font-family:monospace;word-break:break-all;">[RAW] 03-26 11:28:41.871  4044  4065 I zombie.surviva: Explicit concurrent copying GC freed 258KB Alloc...</div>
+                    </div>
+                    
+                    <div style="padding:8px;margin:4px 0;background:rgba(255,255,255,0.03);border-radius:4px;border-left:3px solid #888;">
+                        <div style="color:#888;font-weight:600;font-size:0.85em;margin-bottom:4px;">🗑️ RECOLECTOR DE BASURA trabajando - puede causar micro-lags si es muy frecuente.</div>
+                        <div style="color:#888;font-size:0.7em;font-family:monospace;word-break:break-all;">[RAW] 03-26 11:28:42.078 18359 18369 I FuseDaemon: Background concurrent copying GC freed 2035KB AllocS...</div>
+                    </div>
+                    
+                    <div style="padding:8px;margin:4px 0;background:rgba(255,255,255,0.03);border-radius:4px;border-left:3px solid #ffaa00;">
+                        <div style="color:#ffaa00;font-weight:600;font-size:0.85em;margin-bottom:4px;">🗑️ RECOLECTOR DE BASURA trabajando - puede causar micro-lags si es muy frecuente.</div>
+                        <div style="color:#888;font-size:0.7em;font-family:monospace;word-break:break-all;">[RAW] 03-26 11:28:42.078 18359 18369 W FuseDaemon: Reducing the number of considered missed Gc histogra...</div>
+                    </div>
+                    
+                    <div style="padding:8px;margin:4px 0;background:rgba(255,255,255,0.03);border-radius:4px;border-left:3px solid #888;">
+                        <div style="color:#888;font-weight:600;font-size:0.85em;margin-bottom:4px;">💾 MEMORIA LLENA - El juego necesita más RAM. Puede cerrar el juego.</div>
+                        <div style="color:#888;font-size:0.7em;font-family:monospace;word-break:break-all;">[RAW] 03-26 11:28:42.084  4840  5196 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloo...</div>
+                    </div>
+                    
+                    <div style="padding:8px;margin:4px 0;background:rgba(255,255,255,0.03);border-radius:4px;border-left:3px solid #888;">
+                        <div style="color:#888;font-weight:600;font-size:0.85em;margin-bottom:4px;">💾 MEMORIA LLENA - El juego necesita más RAM. Puede cerrar el juego.</div>
+                        <div style="color:#888;font-size:0.7em;font-family:monospace;word-break:break-all;">[RAW] 03-26 11:28:42.660  4840  5196 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloo...</div>
+                    </div>
+                    
+                    <div style="padding:8px;margin:4px 0;background:rgba(255,255,255,0.03);border-radius:4px;border-left:3px solid #888;">
+                        <div style="color:#888;font-weight:600;font-size:0.85em;margin-bottom:4px;">💾 MEMORIA LLENA - El juego necesita más RAM. Puede cerrar el juego.</div>
+                        <div style="color:#888;font-size:0.7em;font-family:monospace;word-break:break-all;">[RAW] 03-26 11:28:43.974  4840  5196 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloo...</div>
+                    </div>
+                    
+                    <div style="padding:8px;margin:4px 0;background:rgba(255,255,255,0.03);border-radius:4px;border-left:3px solid #888;">
+                        <div style="color:#888;font-weight:600;font-size:0.85em;margin-bottom:4px;">🗑️ RECOLECTOR DE BASURA trabajando - puede causar micro-lags si es muy frecuente.</div>
+                        <div style="color:#888;font-size:0.7em;font-family:monospace;word-break:break-all;">[RAW] 03-26 11:28:44.249  4044  6969 I zombie.surviva: Explicit concurrent copying GC freed 256KB Alloc...</div>
+                    </div>
+                    
+                    <div style="padding:8px;margin:4px 0;background:rgba(255,255,255,0.03);border-radius:4px;border-left:3px solid #888;">
+                        <div style="color:#888;font-weight:600;font-size:0.85em;margin-bottom:4px;">💾 MEMORIA LLENA - El juego necesita más RAM. Puede cerrar el juego.</div>
+                        <div style="color:#888;font-size:0.7em;font-family:monospace;word-break:break-all;">[RAW] 03-26 11:28:44.640  4840  5196 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloo...</div>
+                    </div>
+                    
+                    <div style="padding:8px;margin:4px 0;background:rgba(255,255,255,0.03);border-radius:4px;border-left:3px solid #888;">
+                        <div style="color:#888;font-weight:600;font-size:0.85em;margin-bottom:4px;">💾 MEMORIA LLENA - El juego necesita más RAM. Puede cerrar el juego.</div>
+                        <div style="color:#888;font-size:0.7em;font-family:monospace;word-break:break-all;">[RAW] 03-26 11:28:45.869  4840  5196 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloo...</div>
+                    </div>
+                    
+                    <div style="padding:8px;margin:4px 0;background:rgba(255,255,255,0.03);border-radius:4px;border-left:3px solid #888;">
+                        <div style="color:#888;font-weight:600;font-size:0.85em;margin-bottom:4px;">💾 MEMORIA LLENA - El juego necesita más RAM. Puede cerrar el juego.</div>
+                        <div style="color:#888;font-size:0.7em;font-family:monospace;word-break:break-all;">[RAW] 03-26 11:28:46.425  4840  5196 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloo...</div>
+                    </div>
+                    
+                    <div style="padding:8px;margin:4px 0;background:rgba(255,255,255,0.03);border-radius:4px;border-left:3px solid #888;">
+                        <div style="color:#888;font-weight:600;font-size:0.85em;margin-bottom:4px;">🗑️ RECOLECTOR DE BASURA trabajando - puede causar micro-lags si es muy frecuente.</div>
+                        <div style="color:#888;font-size:0.7em;font-family:monospace;word-break:break-all;">[RAW] 03-26 11:28:46.583  4044  6969 I zombie.surviva: Explicit concurrent copying GC freed 256KB Alloc...</div>
+                    </div>
+                    
+            </div>
+        </div>
+        
+        
+        <div class="card problems">
+            <h2>⚠️ Problemas</h2>
+            <div style="background:rgba(255,255,255,0.03);border-left:4px solid #ff0044;padding:16px;margin:12px 0;border-radius:8px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <strong style="color:#ff0044;font-size:1.1em;">🔴 FPS promedio de 11 - Muy bajo</strong>
+        <span style="background:#ff0044;color:#000;padding:2px 10px;border-radius:12px;font-size:0.75em;font-weight:700;">Severidad: Alto</span>
+    </div>
+    <div style="color:#ccc;margin-bottom:12px;line-height:1.6;font-size:0.9em;">
+        <strong style="color:#00d4ff;">Que significa:</strong> El juego renderiza menos de 30 imágenes por segundo. A este nivel el movimiento se ve entrecortado y la respuesta a los controles tiene retraso visible. La GPU o CPU del dispositivo no puede con la carga gráfica del juego.
+    </div>
+    <div style="background:rgba(0,212,255,0.08);padding:12px;border-radius:6px;border-left:3px solid #00d4ff;">
+        <strong style="color:#00d4ff;font-size:0.85em;">Solucion recomendada:</strong>
+        <div style="color:#aaa;margin-top:6px;line-height:1.6;font-size:0.85em;">1) Bajar la calidad gráfica en los ajustes del juego (texturas, sombras, efectos). 2) Cerrar todas las apps en segundo plano. 3) Si el dispositivo tiene modo rendimiento/gaming, activarlo. 4) Desactivar efectos de post-procesado si el juego lo permite.</div>
+    </div>
+</div><div style="background:rgba(255,255,255,0.03);border-left:4px solid #ff0044;padding:16px;margin:12px 0;border-radius:8px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <strong style="color:#ff0044;font-size:1.1em;">🔴 86 frames perdidos</strong>
+        <span style="background:#ff0044;color:#000;padding:2px 10px;border-radius:12px;font-size:0.75em;font-weight:700;">Severidad: Alto</span>
+    </div>
+    <div style="color:#ccc;margin-bottom:12px;line-height:1.6;font-size:0.9em;">
+        <strong style="color:#00d4ff;">Que significa:</strong> Se han perdido 86 frames durante la sesión. Cada frame perdido es un 'tirón' o 'freeze' momentáneo. SurfaceFlinger (el sistema que pinta la pantalla) detectó que el juego no entregó los frames a tiempo.
+    </div>
+    <div style="background:rgba(0,212,255,0.08);padding:12px;border-radius:6px;border-left:3px solid #00d4ff;">
+        <strong style="color:#00d4ff;font-size:0.85em;">Solucion recomendada:</strong>
+        <div style="color:#aaa;margin-top:6px;line-height:1.6;font-size:0.85em;">1) Bajar la calidad gráfica del juego. 2) Si hay frame drops solo en ciertos momentos (cargar zonas, explosiones), puede ser un problema del juego, no del dispositivo. 3) Probar con resolución más baja.</div>
+    </div>
+</div>
+        </div>
+        
+        <div class="summary">
+            <h3>📋 Resumen</h3>
+            <p>El analisis de <strong>com.vivastudios.afterworld.zombie.survival</strong> en <strong>moto g(30)</strong> durante <strong>0m 7s</strong> muestra un rendimiento de <strong>11 FPS</strong> con una estabilidad del 100%.
+
+❌ <strong>Se detectaron 2 problema(s):</strong>
+<ul><li><strong>FPS_BAJO:</strong> FPS promedio de 11 - Muy bajo</li><li><strong>FRAME_DROPS:</strong> 86 frames perdidos</li></ul>
+El rendimiento FPS está por debajo de lo ideal. El dispositivo no es suficiente para este juego.</p>
+        </div>
+    </div>
+</body>
+</html>

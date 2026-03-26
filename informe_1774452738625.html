@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe - com.vivastudios.afterworld.zombie.survival</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; color: #fff; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { text-align: center; margin-bottom: 10px; background: linear-gradient(90deg, #00d4ff, #7b2cbf); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #888; margin-bottom: 30px; }
+        .grade { text-align: center; font-size: 8rem; font-weight: bold; color: #ffaa00; text-shadow: 0 0 50px #ffaa00; margin: 20px 0; }
+        .grade-label { text-align: center; color: #888; font-size: 1.2rem; margin-bottom: 30px; }
+        .card { background: rgba(255,255,255,0.05); border-radius: 16px; padding: 20px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.1); }
+        .card h2 { color: #00d4ff; margin-bottom: 16px; font-size: 1.2rem; }
+        .stat { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .stat:last-child { border-bottom: none; }
+        .stat-label { color: #888; }
+        .stat-value { font-weight: bold; }
+        .stat-value.good { color: #00ff88; }
+        .stat-value.warning { color: #ffaa00; }
+        .stat-value.bad { color: #ff0044; }
+        .chart { height: 150px; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; margin-top: 10px; }
+        .chart canvas { width: 100%; height: 100%; }
+        .problems { margin-top: 20px; }
+        .summary { background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(123,44,191,0.1)); padding: 20px; border-radius: 16px; margin-top: 20px; }
+        .summary h3 { color: #00d4ff; margin-bottom: 12px; }
+        .summary p { line-height: 1.8; color: #ccc; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Informe de Rendimiento</h1>
+        <p class="subtitle">com.vivastudios.afterworld.zombie.survival</p>
+        
+        <div class="grade">C</div>
+        <p class="grade-label">Nota de Rendimiento</p>
+        
+        <div class="card">
+            <h2>📱 Dispositivo</h2>
+            <div class="stat"><span class="stat-label">Modelo</span><span class="stat-value">Pixel 7a</span></div>
+            <div class="stat"><span class="stat-label">RAM</span><span class="stat-value">7 GB</span></div>
+            <div class="stat"><span class="stat-label">CPU</span><span class="stat-value">lynx gs201</span></div>
+            <div class="stat"><span class="stat-label">Núcleos</span><span class="stat-value">8</span></div>
+            <div class="stat"><span class="stat-label">Resolución</span><span class="stat-value">Physical size: 1080x2400</span></div>
+        </div>
+        
+        <div class="card">
+            <h2>🎮 FPS</h2>
+            <div class="stat"><span class="stat-label">Promedio</span><span class="stat-value good">60 FPS</span></div>
+            <div class="stat"><span class="stat-label">Mínimo</span><span class="stat-value">60 FPS</span></div>
+            <div class="stat"><span class="stat-label">Máximo</span><span class="stat-value">60 FPS</span></div>
+            <div class="stat"><span class="stat-label">Estabilidad</span><span class="stat-value good">100%</span></div>
+            <div class="stat"><span class="stat-label">Frame Drops</span><span class="stat-value good">1</span></div>
+        </div>
+        
+        <div class="card">
+            <h2>💾 Memoria</h2>
+            <div class="stat"><span class="stat-label">Inicio</span><span class="stat-value">1785 MB</span></div>
+            <div class="stat"><span class="stat-label">Final</span><span class="stat-value">1852 MB</span></div>
+            <div class="stat"><span class="stat-label">Pico</span><span class="stat-value bad">2020 MB</span></div>
+            <div class="stat"><span class="stat-label">Crecimiento</span><span class="stat-value good">67 MB</span></div>
+        </div>
+        
+        <div class="card">
+            <h2>🔋 Batería</h2>
+            <div class="stat"><span class="stat-label">Inicio</span><span class="stat-value">8%</span></div>
+            <div class="stat"><span class="stat-label">Fin</span><span class="stat-value">7%</span></div>
+            <div class="stat"><span class="stat-label">Consumo</span><span class="stat-value good">1%</span></div>
+        </div>
+        
+        <div class="card">
+            <h2>📊 Muestreo</h2>
+            <div class="stat"><span class="stat-label">Muestras totales</span><span class="stat-value">87</span></div>
+            <div class="stat"><span class="stat-label">Intervalo</span><span class="stat-value">100ms</span></div>
+            <div class="stat"><span class="stat-label">Muestras/seg</span><span class="stat-value">10</span></div>
+        </div>
+        
+        <div class="card">
+            <h2>📝 Eventos</h2>
+            <div class="stat"><span class="stat-label">Errors</span><span class="stat-value bad">1190</span></div>
+            <div class="stat"><span class="stat-label">Warnings</span><span class="stat-value warning">1489</span></div>
+            <div class="stat"><span class="stat-label">GC Events</span><span class="stat-value good">0</span></div>
+        </div>
+        
+        
+        <div class="card" style="border-left:4px solid #ff0044;">
+            <h2>🚨 Errores Repetidos</h2>
+            
+                <div style="background:rgba(255,0,68,0.1);padding:10px;margin:8px 0;border-radius:4px;">
+                    <strong style="color:#ff0044">x10</strong> - <span style="color:#ccc;font-size:0.85em;">03-25 16:28:09.903   560   847 E hwc-display: getDisplayXrrV</span>
+                </div>
+                
+                <div style="background:rgba(255,0,68,0.1);padding:10px;margin:8px 0;border-radius:4px;">
+                    <strong style="color:#ff0044">x10</strong> - <span style="color:#ccc;font-size:0.85em;">03-25 16:28:09.904   558  2497 E surfaceflinger: GetServerCo</span>
+                </div>
+                
+                <div style="background:rgba(255,0,68,0.1);padding:10px;margin:8px 0;border-radius:4px;">
+                    <strong style="color:#ff0044">x10</strong> - <span style="color:#ccc;font-size:0.85em;">03-25 16:28:09.969   560   847 E hwc-display: getDisplayXrrV</span>
+                </div>
+                
+                <div style="background:rgba(255,0,68,0.1);padding:10px;margin:8px 0;border-radius:4px;">
+                    <strong style="color:#ff0044">x10</strong> - <span style="color:#ccc;font-size:0.85em;">03-25 16:28:09.970   558  2497 E surfaceflinger: GetServerCo</span>
+                </div>
+                
+                <div style="background:rgba(255,0,68,0.1);padding:10px;margin:8px 0;border-radius:4px;">
+                    <strong style="color:#ff0044">x10</strong> - <span style="color:#ccc;font-size:0.85em;">03-25 16:28:10.723   560   560 E hwc-display: getDisplayXrrV</span>
+                </div>
+                
+        </div>
+        
+        
+        
+        <div class="card" style="border-left:4px solid #ffaa00;">
+            <h2>⚠️ Advertencias Repetidas</h2>
+            
+                <div style="background:rgba(255,170,0,0.1);padding:10px;margin:8px 0;border-radius:4px;">
+                    <strong style="color:#ffaa00">x10</strong> - <span style="color:#ccc;font-size:0.85em;">03-25 16:28:09.898   558  2497 W SurfaceFlinger: Invalid EDI</span>
+                </div>
+                
+                <div style="background:rgba(255,170,0,0.1);padding:10px;margin:8px 0;border-radius:4px;">
+                    <strong style="color:#ffaa00">x10</strong> - <span style="color:#ccc;font-size:0.85em;">03-25 16:28:09.964   558  2497 W SurfaceFlinger: Invalid EDI</span>
+                </div>
+                
+                <div style="background:rgba(255,170,0,0.1);padding:10px;margin:8px 0;border-radius:4px;">
+                    <strong style="color:#ffaa00">x10</strong> - <span style="color:#ccc;font-size:0.85em;">03-25 16:28:10.717   558   600 W SurfaceFlinger: Invalid EDI</span>
+                </div>
+                
+                <div style="background:rgba(255,170,0,0.1);padding:10px;margin:8px 0;border-radius:4px;">
+                    <strong style="color:#ffaa00">x10</strong> - <span style="color:#ccc;font-size:0.85em;">03-25 16:28:11.312   558   600 W SurfaceFlinger: Invalid EDI</span>
+                </div>
+                
+                <div style="background:rgba(255,170,0,0.1);padding:10px;margin:8px 0;border-radius:4px;">
+                    <strong style="color:#ffaa00">x10</strong> - <span style="color:#ccc;font-size:0.85em;">03-25 16:28:12.049   558   600 W SurfaceFlinger: Invalid EDI</span>
+                </div>
+                
+        </div>
+        
+        
+        
+        <div class="card">
+            <h2>📋 Últimos Eventos</h2>
+            <div style="margin-top:12px;max-height:300px;overflow-y:auto;background:rgba(0,0,0,0.3);border-radius:8px;padding:10px;font-size:0.8em;">
+                <span style='color:#ffaa00'>[RAW] 03-25 16:32:12.982   895 18752 W audio_hw_output_stream: chk_out_pcm_underrun: underrun(19379) frame</span><br><span style='color:#ffaa00'>[RAW] 03-25 16:32:12.984   895 18752 W audio_hw_output_stream: chk_out_pcm_underrun: underrun(19380) frame</span><br><span style='color:#ffaa00'>[RAW] 03-25 16:32:12.987   895 18752 W audio_hw_output_stream: chk_out_pcm_underrun: underrun(19381) frame</span><br><span style='color:#ffaa00'>[RAW] 03-25 16:32:12.994   895 18752 W audio_hw_output_stream: chk_out_pcm_underrun: underrun(19382) frame</span><br><span style='color:#ffaa00'>[RAW] 03-25 16:32:13.002   895 18752 W audio_hw_output_stream: chk_out_pcm_underrun: underrun(19383) frame</span><br><span style='color:#888'>[RAW] 03-25 16:32:14.404   560   847 I hwc-display: /mnt/vendor/persist/display/original_panel_0 file not </span><br><span style='color:#888'>[RAW] 03-25 16:32:14.404   560   847 D hwc-display: PrimaryDisplay: edid_property is supported but blob is</span><br><span style='color:#888'>[RAW] 03-25 16:32:14.404   560   847 D hwc-display: using Display Fake Edid</span><br><span style='color:#888'>[RAW] 03-25 16:32:14.404   560   847 D hwc-display: PrimaryDisplay: edid_property is supported but blob is</span><br><span style='color:#888'>[RAW] 03-25 16:32:14.404   560   847 D hwc-display: using Display Fake Edid</span><br><span style='color:#ffaa00'>[RAW] 03-25 16:32:14.404   558   600 W SurfaceFlinger: Invalid EDID: model year or manufacture year cannot</span><br><span style='color:#ff0044'>[RAW] 03-25 16:32:14.410   560   847 E hwc-display: getDisplayXrrVersion(): Illegal XRR major version (0) </span><br><span style='color:#ff0044'>[RAW] 03-25 16:32:14.412   558   600 E surfaceflinger: GetServerConfigurableFlag invalid flag name </span><br><span style='color:#888'>[RAW] 03-25 16:32:14.562  1768  1779 I pixel-thermal: VIRTUAL-SKIN-CPU:45.8148 raw data: VIRTUAL-NEU-QUT-S</span><br><span style='color:#888'>[RAW] 03-25 16:32:14.562  1768  1779 I pixel-thermal: VIRTUAL-SKIN-CPU power_budget=800 err=-4.81477 s_pow</span><br><span style='color:#888'>[RAW] 03-25 16:32:14.562  1768  1779 I pixel-thermal: VIRTUAL-SKIN-CPU binded power rails: (S4M_VDD_CPUCL0</span><br><span style='color:#888'>[RAW] 03-25 16:32:14.562  1768  1779 I pixel-thermal: VIRTUAL-SKIN-CPU-GPU:45.8148 raw data: VIRTUAL-SKIN:</span><br><span style='color:#888'>[RAW] 03-25 16:32:14.562  1768  1779 I pixel-thermal: VIRTUAL-SKIN-CPU-GPU power_budget=965.062 err=-0.814</span><br><span style='color:#888'>[RAW] 03-25 16:32:14.562  1768  1779 I pixel-thermal: VIRTUAL-SKIN-CPU-GPU binded power rails: (S4M_VDD_CP</span><br><span style='color:#888'>[RAW] 03-25 16:32:14.567  1768  1779 I pixel-thermal: Successfully update cdev thermal-gpufreq-0 sysfs to </span><br><span style='color:#888'>[RAW] 03-25 16:32:14.567  1768  1779 I pixel-thermal: Successfully update cdev thermal-cpufreq-1 sysfs to </span><br><span style='color:#888'>[RAW] 03-25 16:32:15.157 21236 21245 I zombie.survival: Explicit concurrent mark compact GC freed 1004KB A</span><br><span style='color:#888'>[RAW] 03-25 16:32:15.243   560   560 I hwc-display: /mnt/vendor/persist/display/original_panel_0 file not </span><br><span style='color:#888'>[RAW] 03-25 16:32:15.243   560   560 D hwc-display: PrimaryDisplay: edid_property is supported but blob is</span><br><span style='color:#888'>[RAW] 03-25 16:32:15.243   560   560 D hwc-display: using Display Fake Edid</span><br><span style='color:#888'>[RAW] 03-25 16:32:15.243   560   560 D hwc-display: PrimaryDisplay: edid_property is supported but blob is</span><br><span style='color:#888'>[RAW] 03-25 16:32:15.243   560   560 D hwc-display: using Display Fake Edid</span><br><span style='color:#ffaa00'>[RAW] 03-25 16:32:15.243   558  2497 W SurfaceFlinger: Invalid EDID: model year or manufacture year cannot</span><br><span style='color:#ff0044'>[RAW] 03-25 16:32:15.248   560   560 E hwc-display: getDisplayXrrVersion(): Illegal XRR major version (0) </span><br><span style='color:#ff0044'>[RAW] 03-25 16:32:15.249   558  2497 E surfaceflinger: GetServerConfigurableFlag invalid flag name </span>
+            </div>
+        </div>
+        
+        
+        <div class="card problems">
+            <h2>⚠️ Problemas</h2>
+            <div style="background:rgba(255,0,68,0.1);border-left:4px solid #ff0044;padding:12px;margin:8px 0;border-radius:4px">
+    <strong style="color:#ff0044">Pico de 2020 MB - Muy alto</strong>
+</div><div style="background:rgba(255,0,68,0.1);border-left:4px solid #ffaa00;padding:12px;margin:8px 0;border-radius:4px">
+    <strong style="color:#ffaa00">894 problemas de audio - puede causar lags</strong>
+</div><div style="background:rgba(255,0,68,0.1);border-left:4px solid #ff0044;padding:12px;margin:8px 0;border-radius:4px">
+    <strong style="color:#ff0044">1190 errores críticos</strong>
+</div>
+        </div>
+        
+        <div class="summary">
+            <h3>📋 Resumen</h3>
+            <p>El análisis de <strong>com.vivastudios.afterworld.zombie.survival</strong> en <strong>Pixel 7a</strong> durante 60 segundos muestra un rendimiento de <strong>60 FPS</strong> con una estabilidad del 100%.
+
+❌ <strong>Se detectaron 3 problema(s):</strong>
+<ul><li><strong>MEMORIA_ALTA:</strong> Pico de 2020 MB - Muy alto</li><li><strong>AUDIO_LAG:</strong> 894 problemas de audio - puede causar lags</li><li><strong>ERRORES:</strong> 1190 errores críticos</li></ul>
+⚠️ Hay problemas de memoria que pueden causar crashes.</p>
+        </div>
+    </div>
+</body>
+</html>
