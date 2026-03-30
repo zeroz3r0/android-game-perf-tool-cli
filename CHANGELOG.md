@@ -3,6 +3,13 @@
 Todos los cambios notables del proyecto se documentan aqui.
 Formato basado en [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [6.0.1] - 2026-03-30
+
+### Mejorado
+- **CSS del informe HTML rehecho**: line-height 1.6, font-sizes explicitos (13px labels, 14px values bold), letter-spacing en headers, gaps aumentados en category-grid (4px -> 8px), align-items center en stats, flex-wrap en issue/problem headers, margin-bottom en cards (16px -> 20px), padding aumentado en issue/problem boxes
+- Mejor diferenciacion visual entre labels y valores en el informe
+- Print CSS con font-size explicito (12px)
+
 ## [6.0.0] - 2026-03-30
 
 ### Validado
