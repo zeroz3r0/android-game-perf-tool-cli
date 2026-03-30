@@ -4,6 +4,7 @@ import com.gameperf.analysis.SessionAnalyzer
 import com.gameperf.capture.CaptureSession
 import com.gameperf.config.AppConfig
 import com.gameperf.core.AdbConnector
+import com.gameperf.core.AdbProvider
 import com.gameperf.core.AndroidDevice
 import com.gameperf.i18n.Strings
 import com.gameperf.report.HtmlReporter
@@ -139,7 +140,7 @@ private fun printBanner() {
 
 // ===== WiFi Handling =====
 
-private fun handleWifiMode(connector: AdbConnector, device: AndroidDevice, config: AppConfig): AndroidDevice {
+private fun handleWifiMode(connector: AdbProvider, device: AndroidDevice, config: AppConfig): AndroidDevice {
     if (config.wifi && !connector.isWifiConnection(device.id)) {
         println("\n${Strings.WIFI_SWITCHING}")
         val wifiId = connector.switchToWifi(device.id)
@@ -173,7 +174,7 @@ private fun handleWifiMode(connector: AdbConnector, device: AndroidDevice, confi
 
 // ===== Game Detection =====
 
-private fun detectGame(connector: AdbConnector, device: AndroidDevice, config: AppConfig): String? {
+private fun detectGame(connector: AdbProvider, device: AndroidDevice, config: AppConfig): String? {
     // Manual package override
     if (config.packageName != null) return config.packageName
 

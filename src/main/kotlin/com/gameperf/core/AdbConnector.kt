@@ -3,7 +3,7 @@ package com.gameperf.core
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
-class AdbConnector {
+class AdbConnector : AdbProvider {
 
     // ===== ADB Execution with Timeout =====
 
@@ -35,11 +35,11 @@ class AdbConnector {
 
     // ===== Device Discovery =====
 
-    fun isAdbAvailable(): Boolean {
+    override fun isAdbAvailable(): Boolean {
         return execAdb("adb", "version").isNotEmpty()
     }
 
-    fun listDevices(): List<AndroidDevice> {
+    override fun listDevices(): List<AndroidDevice> {
         if (!isAdbAvailable()) return emptyList()
         val output = execAdb("adb", "devices", "-l")
         if (output.isBlank()) return emptyList()
@@ -62,7 +62,7 @@ class AdbConnector {
         return devices
     }
 
-    fun getDeviceSpecs(deviceId: String): DeviceSpecs {
+    override fun getDeviceSpecs(deviceId: String): DeviceSpecs {
         val model = getDeviceProperty(deviceId, "ro.product.model")
         val manufacturer = getDeviceProperty(deviceId, "ro.product.manufacturer")
         val sdk = getDeviceProperty(deviceId, "ro.build.version.sdk").toIntOrNull() ?: 0
@@ -106,7 +106,7 @@ class AdbConnector {
 
     // ===== Battery =====
 
-    fun getBatteryLevel(deviceId: String): BatteryInfo? {
+    override fun getBatteryLevel(deviceId: String): BatteryInfo? {
         val output = execAdbShell(deviceId, "dumpsys battery")
         if (output.isBlank()) return null
         val level = Regex("level: (\\d+)").find(output)?.groupValues?.get(1)?.toIntOrNull() ?: 0
@@ -129,7 +129,7 @@ class AdbConnector {
      * 4. Connect to device via WiFi
      * 5. Verify connection works
      */
-    fun switchToWifi(usbDeviceId: String, port: Int = 5555): String? {
+    override fun switchToWifi(usbDeviceId: String, port: Int): String? {
         // Get device IP address
         val ipOutput = execAdbShell(usbDeviceId, "ip addr show wlan0")
         val ipMatch = Regex("inet (\\d+\\.\\d+\\.\\d+\\.\\d+)/").find(ipOutput)
@@ -177,7 +177,7 @@ class AdbConnector {
     /**
      * Check if a device ID looks like a WiFi connection (ip:port format)
      */
-    fun isWifiConnection(deviceId: String): Boolean {
+    override fun isWifiConnection(deviceId: String): Boolean {
         return Regex("\\d+\\.\\d+\\.\\d+\\.\\d+:\\d+").matches(deviceId)
     }
 
@@ -186,17 +186,17 @@ class AdbConnector {
      * The device still receives power via USB for ADB, but the OS stops
      * counting it as "charging" so battery level reflects real consumption.
      */
-    fun disableCharging(deviceId: String) {
+    override fun disableCharging(deviceId: String) {
         execAdbShell(deviceId, "dumpsys battery unplug")
     }
 
-    fun restoreCharging(deviceId: String) {
+    override fun restoreCharging(deviceId: String) {
         execAdbShell(deviceId, "dumpsys battery reset")
     }
 
     // ===== Game Detection =====
 
-    fun getGamePackage(deviceId: String): String? {
+    override fun getGamePackage(deviceId: String): String? {
         val output = execAdbShell(deviceId, "dumpsys activity activities")
         if (output.isBlank()) return null
 
@@ -234,7 +234,7 @@ class AdbConnector {
      * > any layer containing the package name.
      * Caches the result since the layer name doesn't change during a session.
      */
-    fun findGameLayer(deviceId: String, packageName: String): String? {
+    override fun findGameLayer(deviceId: String, packageName: String): String? {
         // Return cached if same package
         cachedLayer?.let { (pkg, layer) ->
             if (pkg == packageName) return layer
@@ -261,7 +261,7 @@ class AdbConnector {
      * - Temporal continuity: detects and handles gaps in the frame timeline
      * - Full buffer frame times: still collects all frame times for histogram analysis
      */
-    fun captureFrameData(deviceId: String, packageName: String): FrameData? {
+    override fun captureFrameData(deviceId: String, packageName: String): FrameData? {
         val layerName = findGameLayer(deviceId, packageName) ?: return null
 
         val output = execAdbShell(deviceId, "dumpsys SurfaceFlinger --latency '$layerName'")
@@ -332,7 +332,7 @@ class AdbConnector {
 
     // ===== Memory (Enhanced: Native + Java heap) =====
 
-    fun getMemoryInfo(deviceId: String, packageName: String): MemoryInfo? {
+    override fun getMemoryInfo(deviceId: String, packageName: String): MemoryInfo? {
         val output = execAdbShell(deviceId, "dumpsys meminfo $packageName", timeoutMs = 8000)
         if (output.isBlank()) return null
 
@@ -354,14 +354,14 @@ class AdbConnector {
 
     // ===== Missed Frames (global SurfaceFlinger counter) =====
 
-    fun getMissedFrames(deviceId: String): Int {
+    override fun getMissedFrames(deviceId: String): Int {
         val output = execAdbShell(deviceId, "dumpsys SurfaceFlinger", timeoutMs = 3000)
         return Regex("Total missed frame count:\\s*(\\d+)").find(output)?.groupValues?.get(1)?.toIntOrNull() ?: 0
     }
 
     // ===== CPU Usage =====
 
-    fun getCpuTimes(deviceId: String): Map<String, CpuTimes> {
+    override fun getCpuTimes(deviceId: String): Map<String, CpuTimes> {
         val output = execAdbShell(deviceId, "cat /proc/stat")
         if (output.isBlank()) return emptyMap()
 
@@ -384,7 +384,7 @@ class AdbConnector {
         return result
     }
 
-    fun calculateCpuUsage(prev: Map<String, CpuTimes>, curr: Map<String, CpuTimes>): CpuSnapshot? {
+    override fun calculateCpuUsage(prev: Map<String, CpuTimes>, curr: Map<String, CpuTimes>): CpuSnapshot? {
         val prevTotal = prev["cpu"] ?: return null
         val currTotal = curr["cpu"] ?: return null
         val totalDelta = currTotal.total - prevTotal.total
@@ -410,9 +410,57 @@ class AdbConnector {
         return CpuSnapshot(totalUsage = totalUsage, perCoreUsage = perCore, timestamp = System.currentTimeMillis())
     }
 
+    // ===== CPU Per-Process =====
+
+    /** Previous process CPU ticks for delta calculation. */
+    private var prevProcessTicks: Pair<Long, Long>? = null // (processTicks, systemTotal)
+
+    /**
+     * Gets CPU usage specifically for the game process.
+     *
+     * Reads /proc/{pid}/stat for the process's user+system ticks,
+     * and /proc/stat for total system ticks. Calculates delta-based
+     * percentage between calls.
+     *
+     * @return CPU percentage (0-100) for the game process, or -1.0 if unavailable
+     */
+    override fun getProcessCpuUsage(deviceId: String, packageName: String): Double {
+        val pid = getGamePid(deviceId, packageName)
+        if (pid <= 0) return -1.0
+
+        // Read process ticks: /proc/{pid}/stat field 14 (utime) + field 15 (stime)
+        val procOutput = execAdbShell(deviceId, "cat /proc/$pid/stat", timeoutMs = 2000)
+        val procParts = procOutput.trim().split("\\s+".toRegex())
+        if (procParts.size < 15) return -1.0
+
+        val utime = procParts[13].toLongOrNull() ?: return -1.0
+        val stime = procParts[14].toLongOrNull() ?: return -1.0
+        val processTicks = utime + stime
+
+        // Read total system ticks
+        val statOutput = execAdbShell(deviceId, "cat /proc/stat", timeoutMs = 2000)
+        val cpuLine = statOutput.lines().firstOrNull { it.startsWith("cpu ") } ?: return -1.0
+        val cpuParts = cpuLine.trim().split("\\s+".toRegex())
+        if (cpuParts.size < 8) return -1.0
+        val systemTotal = (1..7).sumOf { cpuParts[it].toLongOrNull() ?: 0L }
+
+        val prev = prevProcessTicks
+        prevProcessTicks = processTicks to systemTotal
+
+        if (prev != null) {
+            val deltaTicks = processTicks - prev.first
+            val deltaTotal = systemTotal - prev.second
+            if (deltaTotal > 0) {
+                return (deltaTicks.toDouble() / deltaTotal * 100).coerceIn(0.0, 100.0)
+            }
+        }
+
+        return -1.0 // First call, need two readings for delta
+    }
+
     // ===== GPU Usage =====
 
-    /** Previous GPU busy/total times for delta-based calculation */
+    /** Previous GPU busy/total times for delta-based calculation. */
     private var prevGpuBusyTotal: Pair<Long, Long>? = null
 
     /**
@@ -428,7 +476,7 @@ class AdbConnector {
      * a stale or incorrect value. We now also read busy_time/total_time
      * counters and compute delta-based usage for more accuracy.
      */
-    fun getGpuUsage(deviceId: String): GpuSnapshot {
+    override fun getGpuUsage(deviceId: String): GpuSnapshot {
         val now = System.currentTimeMillis()
 
         // Qualcomm Adreno: Try delta-based busy_time first (more reliable)
@@ -482,7 +530,7 @@ class AdbConnector {
 
     // ===== Temperature =====
 
-    fun getThermalInfo(deviceId: String): ThermalSnapshot {
+    override fun getThermalInfo(deviceId: String): ThermalSnapshot {
         // Read all thermal zones in one shot
         val types = execAdbShell(deviceId, "for z in /sys/class/thermal/thermal_zone*; do echo \"\$(cat \$z/type 2>/dev/null):\$(cat \$z/temp 2>/dev/null)\"; done", timeoutMs = 3000)
 
@@ -515,7 +563,7 @@ class AdbConnector {
 
     // ===== Render Resolution =====
 
-    fun getRenderResolution(deviceId: String, packageName: String): RenderResolution? {
+    override fun getRenderResolution(deviceId: String, packageName: String): RenderResolution? {
         val output = execAdbShell(deviceId, "dumpsys SurfaceFlinger", timeoutMs = 3000)
         if (output.isBlank()) return null
 
@@ -544,12 +592,12 @@ class AdbConnector {
     /**
      * Get game PID for filtering logs. Returns 0 if not found.
      */
-    fun getGamePid(deviceId: String, packageName: String): Int {
+    override fun getGamePid(deviceId: String, packageName: String): Int {
         val output = execAdbShell(deviceId, "pidof $packageName")
         return output.trim().split("\\s+".toRegex()).firstOrNull()?.toIntOrNull() ?: 0
     }
 
-    fun getGameLogs(deviceId: String, packageName: String, lastN: Int): List<LogEntry> {
+    override fun getGameLogs(deviceId: String, packageName: String, lastN: Int): List<LogEntry> {
         // Get game PID to filter logs
         val pid = getGamePid(deviceId, packageName)
 

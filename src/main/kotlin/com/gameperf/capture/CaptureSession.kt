@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * graceful shutdown via ENTER or Ctrl+C.
  */
 class CaptureSession(
-    private val connector: AdbConnector,
+    private val connector: AdbProvider,
     private val config: AppConfig
 ) {
     private val running = AtomicBoolean(false)

@@ -2,43 +2,70 @@ package com.gameperf.core
 
 // ===== Device =====
 
+/** Represents a connected Android device as reported by `adb devices -l`. */
 data class AndroidDevice(
+    /** ADB device identifier (serial number or ip:port for WiFi). */
     val id: String,
+    /** Human-readable device name. */
     val name: String,
+    /** Device model (e.g. "Pixel 7", "moto g(30)"). */
     val model: String,
+    /** Device manufacturer (e.g. "Google", "Motorola"). */
     val manufacturer: String,
+    /** Android SDK version (e.g. 33 for Android 13). */
     val sdkVersion: Int,
+    /** True if this is an Android emulator. */
     val isEmulator: Boolean
 )
 
+/** Hardware specifications for a device, gathered from system properties. */
 data class DeviceSpecs(
     val model: String,
     val manufacturer: String,
     val sdkVersion: Int,
+    /** CPU identifier (e.g. "qcom bengal"). */
     val cpu: String,
+    /** Total RAM in bytes. */
     val ram: Long,
+    /** Screen resolution string from `wm size`. */
     val resolution: String,
+    /** Number of CPU cores from /proc/cpuinfo. */
     val cores: Int,
+    /** GPU model string from SurfaceFlinger GLES info. */
     val gpuModel: String
 ) {
+    /** RAM in gigabytes for display purposes. */
     val ramGb: Double get() = ram / (1024.0 * 1024 * 1024)
 }
 
 // ===== Battery =====
 
+/** Battery state snapshot from `dumpsys battery`. */
 data class BatteryInfo(
+    /** Battery level percentage (0-100). */
     val level: Int,
+    /** Battery temperature in Celsius. */
     val temperature: Float,
+    /** True if the device is currently charging. */
     val isCharging: Boolean,
+    /** Battery voltage in millivolts. */
     val voltage: Int
 )
 
 // ===== Memory =====
 
+/**
+ * Memory usage snapshot for a process from `dumpsys meminfo`.
+ * All values in kilobytes unless noted otherwise.
+ */
 data class MemoryInfo(
+    /** Total Proportional Set Size in KB - the "real" memory footprint. */
     val totalPssKb: Long,
+    /** Native (C/C++) heap PSS in KB. */
     val nativeHeapKb: Long,
+    /** Java/Dalvik heap PSS in KB. */
     val javaHeapKb: Long,
+    /** Timestamp when this snapshot was taken. */
     val timestamp: Long
 ) {
     val totalMb: Long get() = totalPssKb / 1024
@@ -48,16 +75,26 @@ data class MemoryInfo(
 
 // ===== Frame Data =====
 
+/**
+ * Frame data from a single SurfaceFlinger --latency read.
+ * Contains both the calculated FPS and individual frame times.
+ */
 data class FrameData(
+    /** Instantaneous FPS calculated from a 1-second window. */
     val fps: Int,
+    /** Individual frame durations in milliseconds, IQR-filtered. */
     val frameTimes: List<Double>,
     val timestamp: Long
 ) {
+    /** Frames exceeding 16.67ms (below 60fps target). */
     val jankFrames: Int get() = frameTimes.count { it > 16.67 }
+    /** Frames exceeding 33.33ms (below 30fps, severe stutter). */
     val severeJankFrames: Int get() = frameTimes.count { it > 33.33 }
+    /** Frames exceeding 100ms (visible freeze). */
     val stutterFrames: Int get() = frameTimes.count { it > 100.0 }
 }
 
+/** Game's actual render resolution from SurfaceFlinger buffer info. */
 data class RenderResolution(
     val width: Int,
     val height: Int
@@ -68,12 +105,16 @@ data class RenderResolution(
 
 // ===== CPU =====
 
+/** System-wide CPU usage snapshot calculated from /proc/stat deltas. */
 data class CpuSnapshot(
+    /** Total CPU usage percentage (0-100). */
     val totalUsage: Double,
+    /** Per-core usage percentages (0-100 each). */
     val perCoreUsage: List<Double>,
     val timestamp: Long
 )
 
+/** Raw CPU time counters from a single /proc/stat read. */
 data class CpuTimes(
     val user: Long,
     val nice: Long,
@@ -83,16 +124,21 @@ data class CpuTimes(
     val irq: Long,
     val softirq: Long
 ) {
+    /** Total busy ticks (user + nice + system + irq + softirq). */
     val totalBusy: Long get() = user + nice + system + irq + softirq
+    /** Total ticks including idle and iowait. */
     val total: Long get() = totalBusy + idle + iowait
 }
 
 // ===== GPU =====
 
+/** GPU usage snapshot from vendor-specific sysfs nodes. */
 data class GpuSnapshot(
+    /** GPU usage percentage (0-100), or -1 if not available. */
     val usage: Double,
     val timestamp: Long
 ) {
+    /** True if GPU usage data was successfully read. */
     val isAvailable: Boolean get() = usage >= 0
 }
 

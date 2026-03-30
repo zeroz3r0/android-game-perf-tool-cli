@@ -10,9 +10,41 @@ object Strings {
 
     // ===== Terminal Output =====
 
-    const val ERROR_ADB_NOT_AVAILABLE = "ERROR: ADB no disponible. Asegurate de tener Android SDK instalado y adb en el PATH."
-    const val ERROR_NO_DEVICES = "ERROR: No hay dispositivos conectados. Conecta un dispositivo Android por USB."
-    const val ERROR_NO_GAME = "ERROR: No se detecto juego en primer plano. Abre un juego y ejecuta de nuevo."
+    val ERROR_ADB_NOT_AVAILABLE = """
+        |ERROR: ADB no disponible.
+        |
+        |  ADB (Android Debug Bridge) es necesario para comunicarse con el dispositivo.
+        |  Viene incluido en Android SDK Platform-Tools.
+        |
+        |  Como instalar:
+        |    macOS:    brew install android-platform-tools
+        |    Linux:    sudo apt install android-tools-adb
+        |    Windows:  https://developer.android.com/studio/releases/platform-tools
+        |
+        |  Despues de instalar, verifica con: adb version
+    """.trimMargin()
+
+    val ERROR_NO_DEVICES = """
+        |ERROR: No hay dispositivos conectados.
+        |
+        |  Asegurate de:
+        |    1. Conectar el dispositivo por USB
+        |    2. Activar "Opciones de desarrollador" (toca 7 veces "Numero de compilacion" en Ajustes > Acerca del telefono)
+        |    3. Activar "Depuracion USB" en Opciones de desarrollador
+        |    4. Aceptar el dialogo "Permitir depuracion USB" en el dispositivo
+        |
+        |  Verifica con: adb devices
+    """.trimMargin()
+
+    val ERROR_NO_GAME = """
+        |ERROR: No se detecto juego en primer plano.
+        |
+        |  Asegurate de que el juego esta abierto y visible en pantalla.
+        |  Si el juego no se detecta automaticamente, especificalo manualmente:
+        |    gameperf -p com.nombre.del.juego
+        |
+        |  Para ver las apps instaladas: adb shell pm list packages -3
+    """.trimMargin()
     const val ERROR_DEVICE_DISCONNECTED = "ERROR: Dispositivo desconectado o no responde. Deteniendo captura..."
     const val WARN_DEVICE_NO_RESPONSE = "AVISO: Sin respuesta del dispositivo"
     const val WARN_WIFI_FAILED = "ERROR: No se pudo activar WiFi. Asegurate de que el movil esta en la misma red WiFi."
