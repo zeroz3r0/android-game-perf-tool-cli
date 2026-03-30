@@ -5,8 +5,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [6.0.0] - 2026-03-30
 
+### Validado
+- Probado en Pixel 7a (Tensor G2, Mali-G710, Android 15 SDK 36): FPS 59-60, frame times 16.7ms, CPU 40%, temperatura 52C
+
 ### Cambiado (Breaking)
-- Arquitectura completamente refactorizada: Main.kt (1036 lineas) dividido en 10 modulos con responsabilidad unica
+- Arquitectura completamente refactorizada: Main.kt (1036 lineas) dividido en 14 modulos con responsabilidad unica
 - Modelo de datos renombrado a ingles (Problem, Severity, AnalysisResult)
 - Informes se generan en directorio `reports/` en vez del directorio actual
 
@@ -16,7 +19,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Outlier filtering**: filtro estadistico IQR para frame times, elimina artifacts de medicion
 - **Layer caching**: cache del nombre del layer de SurfaceFlinger durante la sesion
 - **Monotonic timestamps**: filtra timestamps no-monotonicos de SurfaceFlinger
-- **41 tests unitarios**: PercentileStats, GradeCalculator, ProblemDetector, EventCategorizer, JsonReporter
+- **47 tests unitarios**: PercentileStats, GradeCalculator, ProblemDetector, EventCategorizer, SessionAnalyzer, JsonReporter
+- **Interfaz AdbProvider**: abstraccion para dependency injection y testing
+- **CPU per-process**: medicion de CPU del juego via /proc/{pid}/stat
+- **KDoc**: documentacion en toda la API publica (Models, AdbProvider)
+- **CSS en resource**: report.css como archivo separado cargado en runtime
+- **Gradle wrapper**: ./gradlew incluido, zero-setup builds
+- **Temperatura via thermalservice**: fallback a `dumpsys thermalservice` para Android 10+
+- **SurfaceFlinger Android 15+**: soporte para formato RequestedLayerState{}
 - **CI/CD**: GitHub Actions con build + test automatico + releases con JAR
 - **Grade breakdown**: desglose transparente de la nota en el informe HTML
 - **Progress bar**: barra de progreso para sesiones con duracion definida
@@ -38,7 +48,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - GPU mostraba 3% constante en algunos Qualcomm (ahora usa delta-based)
 - FPS calculaba promedio sobre buffer completo (128 frames) en vez de ventana temporal
 - Frame times incluia outliers de medicion que distorsionaban percentiles
+- SurfaceFlinger --list en Android 15 devuelve formato diferente (RequestedLayerState{})
+- Temperaturas no se leian en Pixel/Tensor (sysfs restringido, ahora usa thermalservice)
 - README listaba archivos que ya no existian (MetricsExtractor, LogcatReader, etc.)
+- build/ y .gradle/ eliminados de git tracking
+- 18 informes HTML viejos eliminados del repositorio
 
 ## [5.0.0] - 2026-03-26
 

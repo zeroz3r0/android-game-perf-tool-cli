@@ -230,23 +230,39 @@ class AdbConnector : AdbProvider {
 
     /**
      * Finds the game's rendering layer in SurfaceFlinger.
-     * Prioritizes: SurfaceView[pkg] with BLAST > SurfaceView[pkg] without Background
-     * > any layer containing the package name.
-     * Caches the result since the layer name doesn't change during a session.
+     *
+     * Handles two output formats:
+     * - Classic (Android <=14): plain layer names, one per line
+     * - New (Android 15+): `RequestedLayerState{HASH SurfaceView[pkg]...#ID parentId=...}`
+     *
+     * For the new format, extracts the full name including hash prefix
+     * (e.g. "b25e0bb SurfaceView[pkg/Activity](BLAST)#222") since SurfaceFlinger
+     * --latency requires the exact name with hash.
      */
     override fun findGameLayer(deviceId: String, packageName: String): String? {
-        // Return cached if same package
         cachedLayer?.let { (pkg, layer) ->
             if (pkg == packageName) return layer
         }
 
         val output = execAdb("adb", "-s", deviceId, "shell", "dumpsys", "SurfaceFlinger", "--list")
         if (output.isBlank()) return null
+
         val layers = output.lines().filter { it.contains(packageName) }
 
-        val found = layers.find { it.contains("SurfaceView") && it.contains("BLAST") }
-            ?: layers.find { it.contains("SurfaceView") && !it.contains("Background") }
-            ?: layers.firstOrNull()
+        // Extract the actual layer name from either format
+        val extractedLayers = layers.map { line ->
+            // Android 15+ format: RequestedLayerState{HASH SurfaceView[...](BLAST)#NNN parentId=...}
+            val stateMatch = Regex("RequestedLayerState\\{(.+?)\\s+parentId=").find(line)
+            if (stateMatch != null) {
+                stateMatch.groupValues[1].trim()
+            } else {
+                line.trim()
+            }
+        }.filter { it.isNotBlank() }
+
+        val found = extractedLayers.find { it.contains("SurfaceView") && it.contains("BLAST") }
+            ?: extractedLayers.find { it.contains("SurfaceView") && !it.contains("Background") }
+            ?: extractedLayers.firstOrNull()
 
         if (found != null) cachedLayer = packageName to found
         return found
@@ -510,19 +526,28 @@ class AdbConnector : AdbProvider {
             if (pct != null) return GpuSnapshot(usage = pct.coerceIn(0.0, 100.0), timestamp = now)
         }
 
-        // Mali: multiple possible paths
+        // Mali: multiple possible sysfs paths
         val maliPaths = listOf(
             "cat /sys/devices/platform/*/gpu/utilization 2>/dev/null",
             "cat /sys/module/mali*/parameters/gpu_utilization 2>/dev/null",
-            "cat /sys/class/misc/mali*/device/utilisation 2>/dev/null"
+            "cat /sys/class/misc/mali*/device/utilisation 2>/dev/null",
+            "cat /sys/class/misc/mali*/device/dvfs_utilization 2>/dev/null"
         )
         for (path in maliPaths) {
             val output = execAdbShell(deviceId, path, timeoutMs = 2000)
             val match = Regex("(\\d+)").find(output)
             if (match != null) {
                 val pct = match.groupValues[1].toDoubleOrNull()
-                if (pct != null) return GpuSnapshot(usage = pct.coerceIn(0.0, 100.0), timestamp = now)
+                if (pct != null && pct > 0) return GpuSnapshot(usage = pct.coerceIn(0.0, 100.0), timestamp = now)
             }
+        }
+
+        // Fallback: estimate GPU load from dumpsys gpu (Tensor/Pixel, Samsung Exynos)
+        val gpuDump = execAdbShell(deviceId, "dumpsys gpu", timeoutMs = 3000)
+        val gpuUtilMatch = Regex("utilization[:\\s]+(\\d+)").find(gpuDump.lowercase())
+        if (gpuUtilMatch != null) {
+            val pct = gpuUtilMatch.groupValues[1].toDoubleOrNull()
+            if (pct != null) return GpuSnapshot(usage = pct.coerceIn(0.0, 100.0), timestamp = now)
         }
 
         return GpuSnapshot(usage = -1.0, timestamp = now)
@@ -531,26 +556,47 @@ class AdbConnector : AdbProvider {
     // ===== Temperature =====
 
     override fun getThermalInfo(deviceId: String): ThermalSnapshot {
-        // Read all thermal zones in one shot
-        val types = execAdbShell(deviceId, "for z in /sys/class/thermal/thermal_zone*; do echo \"\$(cat \$z/type 2>/dev/null):\$(cat \$z/temp 2>/dev/null)\"; done", timeoutMs = 3000)
-
         var cpuTemp = -1.0
         var gpuTemp = -1.0
         var batteryTemp = -1.0
         var skinTemp = -1.0
 
+        // Method 1: Read thermal zones from sysfs (works on most Qualcomm/MediaTek)
+        val types = execAdbShell(deviceId, "for z in /sys/class/thermal/thermal_zone*; do echo \"\$(cat \$z/type 2>/dev/null):\$(cat \$z/temp 2>/dev/null)\"; done", timeoutMs = 3000)
         for (line in types.lines()) {
             val parts = line.split(":")
             if (parts.size != 2) continue
             val type = parts[0].lowercase()
             val tempRaw = parts[1].trim().toLongOrNull() ?: continue
-            val temp = if (tempRaw > 1000) tempRaw / 1000.0 else tempRaw.toDouble() // some report millidegrees
+            val temp = if (tempRaw > 1000) tempRaw / 1000.0 else tempRaw.toDouble()
 
             when {
                 (type.contains("cpu") || type.contains("tsens") || type.contains("soc")) && cpuTemp < 0 -> cpuTemp = temp
-                (type.contains("gpu")) && gpuTemp < 0 -> gpuTemp = temp
+                type.contains("gpu") && gpuTemp < 0 -> gpuTemp = temp
                 (type.contains("battery") || type.contains("batt")) && batteryTemp < 0 -> batteryTemp = temp
                 (type.contains("skin") || type.contains("back") || type.contains("quiet")) && skinTemp < 0 -> skinTemp = temp
+            }
+        }
+
+        // Method 2: Fallback to dumpsys thermalservice (Android 10+, works on Pixel/Samsung/etc)
+        // This is the reliable method for modern devices where sysfs may be restricted
+        if (cpuTemp < 0 || gpuTemp < 0) {
+            val thermalDump = execAdbShell(deviceId, "dumpsys thermalservice", timeoutMs = 3000)
+            // Parse: Temperature{mValue=52.0, mType=0, mName=LITTLE, mStatus=0}
+            val tempPattern = Regex("Temperature\\{mValue=([\\d.]+),\\s*mType=\\d+,\\s*mName=([^,]+),")
+            for (match in tempPattern.findAll(thermalDump)) {
+                val value = match.groupValues[1].toDoubleOrNull() ?: continue
+                val name = match.groupValues[2].trim().lowercase()
+                when {
+                    // CPU: BIG, LITTLE, MID are CPU cluster names on Tensor/Exynos
+                    (name == "big" || name == "little" || name == "mid" || name.contains("cpu")) && cpuTemp < 0 -> cpuTemp = value
+                    // GPU: G3D on Tensor/Exynos, gpu on Qualcomm
+                    (name == "g3d" || name.contains("gpu")) && gpuTemp < 0 -> gpuTemp = value
+                    // Battery
+                    name == "battery" && batteryTemp < 0 -> batteryTemp = value
+                    // Skin
+                    (name.contains("skin") || name.contains("quiet") || name == "virtual-skin") && skinTemp < 0 -> skinTemp = value
+                }
             }
         }
 
