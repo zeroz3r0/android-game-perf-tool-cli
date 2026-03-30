@@ -1,167 +1,155 @@
 # Android Game Performance Tool
 
-CLI tool for measuring game performance on Android devices.
+Herramienta CLI profesional para medir y analizar el rendimiento de juegos en dispositivos Android.
 
-## Features
+Genera informes detallados con FPS, frame times, memoria, CPU, GPU, temperatura y bateria - todo en un informe HTML interactivo con graficos.
 
-- 📱 List connected Android devices via ADB
-- 📝 Capture logs in real-time
-- 📊 Extract performance metrics (FPS, frame time, memory, CPU)
-- 📋 Generate performance reports (JSON/Markdown)
-- 🔍 Custom analysis with extensible rules
-- ⚠️ Severity-based issue detection (INFO/WARNING/ERROR)
+## Que mide
 
-## Requirements
+| Metrica | Fuente | Precision |
+|---------|--------|-----------|
+| **FPS** | SurfaceFlinger --latency (timestamps de presentacion) | Ventana temporal de 1s |
+| **Frame Times** | Delta entre frames consecutivos con filtro de outliers | IQR-based cleaning |
+| **Memoria** | dumpsys meminfo (Total PSS + Native Heap + Java Heap) | Por proceso |
+| **CPU** | /proc/stat (total + per-core con delta) | Delta entre muestras |
+| **GPU** | gpubusy (Adreno delta) / utilisation (Mali) | Delta-based para Adreno |
+| **Temperatura** | thermal_zone sysfs (CPU, GPU, skin, bateria) | Directo del kernel |
+| **Bateria** | dumpsys battery (con USB charging disabled) | Drenaje real |
+| **Frame Drops** | SurfaceFlinger missed frame counter | Global del compositor |
 
-- Kotlin 1.9+
-- Java 11+
-- Android SDK (ADB)
-- Android device with developer mode enabled
+## Requisitos
 
-## Building
+- Java 8+ (viene con Android SDK)
+- ADB (Android Debug Bridge) en el PATH
+- Dispositivo Android con modo desarrollador activado
+
+## Instalacion
+
+### Opcion 1: Descargar JAR (recomendado)
 
 ```bash
-git clone https://github.com/zeroz3r0/android-game-perf-tool.git
+# Descargar la ultima release
+curl -LO https://github.com/zeroz3r0/android-game-perf-tool-cli/releases/latest/download/android-game-perf-tool-cli-6.0.0.jar
+
+# Ejecutar
+java -jar android-game-perf-tool-cli-6.0.0.jar
+```
+
+### Opcion 2: Compilar desde fuente
+
+```bash
+git clone https://github.com/zeroz3r0/android-game-perf-tool-cli.git
 cd android-game-perf-tool-cli
-./gradlew build
+gradle jar
+java -jar build/libs/android-game-perf-tool-cli-6.0.0.jar
 ```
 
-## Running
-
-### Quick Start
+## Uso
 
 ```bash
-# List devices
-./gradlew run --args="devices"
+# Prueba basica (detecta juego automaticamente)
+java -jar gameperf.jar
 
-# Capture logs and generate report
-./gradlew run --args="capture -d <device-id> -t 30 -o report.md"
+# Prueba de 60 segundos
+java -jar gameperf.jar 60
 
-# Analyze existing log file
-./gradlew run --args="analyze -i logs.txt -o report.md"
+# Especificar paquete del juego
+java -jar gameperf.jar -p com.supercell.clashofclans 120
+
+# Modo WiFi (mide bateria real sin carga USB)
+java -jar gameperf.jar --wifi
+
+# Exportar JSON + HTML, sin abrir browser
+java -jar gameperf.jar --json --no-open -o ~/reports 60
 ```
 
-### Commands
+### Opciones
 
-| Command | Description |
-|---------|-------------|
-| `devices` | List connected Android devices |
-| `capture` | Capture live logs from device |
-| `analyze` | Analyze existing log file |
-| `report` | Generate report from analysis |
-
-### Options
-
-| Flag | Description | Default |
+| Flag | Descripcion | Default |
 |------|-------------|---------|
-| `-d, --device` | Device serial number | Auto-detect |
-| `-t, --duration` | Capture duration (seconds) | 60 |
-| `-i, --input` | Input log file | stdin |
-| `-o, --output` | Output report file | stdout |
-| `-f, --format` | Report format (md/json) | md |
-| `-r, --rules` | Custom rules JSON file | default |
+| `[segundos]` | Duracion de la prueba | Indefinido (ENTER para parar) |
+| `-p, --package <pkg>` | Paquete del juego | Auto-deteccion |
+| `-o, --output <dir>` | Directorio de salida | `reports/` |
+| `-w, --wifi` | Cambiar a ADB WiFi | USB |
+| `-q, --quiet` | Sin explicaciones detalladas | No |
+| `--json` | Exportar tambien en JSON | No |
+| `--no-open` | No abrir informe automaticamente | Abre |
+| `-h, --help` | Mostrar ayuda | - |
+| `-v, --version` | Mostrar version | - |
 
-## Default Rules
+## Informe HTML
 
-The tool includes built-in rules in `src/main/resources/rules-default.json`:
+El informe incluye:
 
-| Rule | Type | Severity | Description |
-|------|------|----------|-------------|
-| Low FPS (<30) | FPS | ERROR | Unplayable frame rate |
-| Medium FPS (<45) | FPS | WARNING | Suboptimal experience |
-| High Frame Time (>33ms) | FRAME_TIME | ERROR | Below 30 FPS |
-| High Memory (>512MB) | MEMORY | WARNING | Elevated memory |
-| Critical Memory (>768MB) | MEMORY | ERROR | Risk of OOM |
-| GC Pressure | MEMORY | WARNING | Garbage collection stutters |
-| Dropped Frames | FRAME_TIME | WARNING | Missed frames |
-| CPU Throttling | CPU | WARNING | Thermal throttling |
-| Jank Detection | FRAME_TIME | ERROR | Visible stutters |
+- **Nota de rendimiento** (A-F) con desglose transparente de la puntuacion
+- **Graficos interactivos** (Chart.js): FPS temporal, histograma de frame times, memoria, CPU/GPU, temperatura
+- **Percentiles** (P1, P5, P50, P90, P95, P99) para FPS y frame times
+- **Timeline de eventos** categorizada (GC, thermal, jank, audio, memoria, crashes)
+- **Problemas detectados** con explicaciones y soluciones recomendadas en espanol
+- **Correlacion FPS-eventos**: muestra que evento causo cada caida de FPS
+- **Soporte para impresion** con estilos adaptados
 
-## Custom Rules
-
-Edit `src/main/resources/rules-default.json` or create a custom rules file:
-
-```json
-{
-  "rules": [
-    {
-      "id": "my_rule",
-      "name": "My Custom Rule",
-      "pattern": "MyPattern[:\\s]+(\\d+)",
-      "metricType": "FPS",
-      "severity": "WARNING",
-      "threshold": 50,
-      "description": "Custom detection rule"
-    }
-  ]
-}
-```
-
-### Supported Metric Types
-
-- `FPS` - Frames per second
-- `FRAME_TIME` - Milliseconds per frame
-- `MEMORY` - Memory usage (MB)
-- `CPU` - CPU utilization
-
-### Severity Levels
-
-- `INFO` - Informational messages
-- `WARNING` - Performance warnings
-- `ERROR` - Critical issues
-
-## Output Examples
-
-### Markdown Report
-
-```markdown
-# Performance Report
-
-## Summary
-- Total Issues: 5
-- Errors: 2
-- Warnings: 3
-
-## Metrics
-- Average FPS: 52.3 (min: 28, max: 60)
-- Average Memory: 450 MB
-
-## Issues
-
-### ERROR: Low FPS
-- Value: 28 FPS
-- Time: 2024-01-15 10:30:45
-
-### WARNING: GC Pressure
-- Pattern: GC_FOR_MALLOC
-```
-
-### JSON Report
-
-```json
-{
-  "timestamp": "2024-01-15T10:30:00Z",
-  "device": "emulator-5554",
-  "summary": { "errors": 2, "warnings": 3 },
-  "metrics": { "fps": { "avg": 52.3 } },
-  "issues": [...]
-}
-```
-
-## Architecture
+## Arquitectura
 
 ```
 src/main/kotlin/com/gameperf/
-├── Main.kt              # CLI entry point
-├── core/
-│   ├── AdbConnector.kt  # ADB device communication
-│   ├── LogcatReader.kt  # Logcat parsing
-│   ├── MetricsExtractor.kt # Metric extraction
-│   └── ReportGenerator.kt  # Report generation
-└── analysis/
-    └── RulesEngine.kt   # Pattern matching engine
+├── Main.kt                     # CLI entry point + arg parsing
+├── config/
+│   └── AppConfig.kt            # Configuracion de la app
+├── capture/
+│   └── CaptureSession.kt       # Loop de captura en tiempo real
+├── analysis/
+│   ├── SessionAnalyzer.kt      # Orquestador del analisis
+│   ├── ProblemDetector.kt      # Deteccion de problemas
+│   ├── EventCategorizer.kt     # Categorizacion de eventos
+│   └── GradeCalculator.kt      # Calculo de nota A-F
+├── report/
+│   ├── TerminalReporter.kt     # Output de consola
+│   ├── HtmlReporter.kt         # Informe HTML con graficos
+│   └── JsonReporter.kt         # Export JSON
+├── i18n/
+│   └── Strings.kt              # Textos centralizados
+└── core/
+    ├── AdbConnector.kt          # Comunicacion con ADB
+    └── Models.kt                # Data classes
 ```
 
-## License
+## Tests
+
+```bash
+gradle test    # 41 tests
+```
+
+Cobertura:
+- `PercentileStats`: calculo de percentiles, edge cases
+- `GradeCalculator`: scoring, penalizaciones, breakdown
+- `ProblemDetector`: deteccion de todos los tipos de problemas
+- `EventCategorizer`: clasificacion de 10 categorias de eventos
+- `JsonReporter`: estructura y contenido del JSON
+
+## Como funciona
+
+1. **Conexion**: Detecta dispositivos via ADB (USB o WiFi)
+2. **Deteccion**: Encuentra el juego en primer plano automaticamente
+3. **Captura**: Cada segundo muestrea FPS, memoria, CPU, GPU, temperatura, logs
+4. **Analisis**: Calcula percentiles, detecta problemas, categoriza eventos, correlaciona FPS drops con eventos
+5. **Reporte**: Genera informe HTML interactivo + JSON opcional
+
+### Modo WiFi
+
+Con `--wifi`, la herramienta:
+1. Obtiene la IP del dispositivo
+2. Activa ADB por TCP/IP
+3. Te pide que desconectes el cable USB
+4. Se conecta por WiFi
+5. Mide el consumo REAL de bateria (sin carga USB)
+
+## Versiones
+
+- **v6.0.0** - Refactorizacion completa: arquitectura modular, FPS windowed, GPU delta-based, outlier filtering, 41 tests, CI/CD
+- **v5.0** - WiFi ADB, frame-by-frame sampling, event categorization
+- **v4.0** - Frame data unificado, deteccion de cambios graficos
+
+## Licencia
 
 MIT

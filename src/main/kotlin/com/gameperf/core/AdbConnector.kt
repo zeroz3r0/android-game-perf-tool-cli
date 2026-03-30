@@ -225,17 +225,41 @@ class AdbConnector {
 
     // ===== Frame Data (UNIFIED - FPS + Frame Times from single read) =====
 
+    /** Cached layer name to avoid re-querying SurfaceFlinger every second */
+    private var cachedLayer: Pair<String, String>? = null // (packageName, layerName)
+
+    /**
+     * Finds the game's rendering layer in SurfaceFlinger.
+     * Prioritizes: SurfaceView[pkg] with BLAST > SurfaceView[pkg] without Background
+     * > any layer containing the package name.
+     * Caches the result since the layer name doesn't change during a session.
+     */
     fun findGameLayer(deviceId: String, packageName: String): String? {
+        // Return cached if same package
+        cachedLayer?.let { (pkg, layer) ->
+            if (pkg == packageName) return layer
+        }
+
         val output = execAdb("adb", "-s", deviceId, "shell", "dumpsys", "SurfaceFlinger", "--list")
         if (output.isBlank()) return null
         val layers = output.lines().filter { it.contains(packageName) }
-        return layers.find { it.contains("SurfaceView") && it.contains("BLAST") }
+
+        val found = layers.find { it.contains("SurfaceView") && it.contains("BLAST") }
             ?: layers.find { it.contains("SurfaceView") && !it.contains("Background") }
+            ?: layers.firstOrNull()
+
+        if (found != null) cachedLayer = packageName to found
+        return found
     }
 
     /**
      * Captures FPS and frame times from a SINGLE SurfaceFlinger --latency read.
-     * This fixes the bug where separate reads would clear each other's data.
+     *
+     * Reliability improvements over v5:
+     * - Windowed FPS: only uses frames from the last ~1 second for instantaneous FPS
+     * - Outlier filtering: removes frame times that are statistical outliers (>3 IQR)
+     * - Temporal continuity: detects and handles gaps in the frame timeline
+     * - Full buffer frame times: still collects all frame times for histogram analysis
      */
     fun captureFrameData(deviceId: String, packageName: String): FrameData? {
         val layerName = findGameLayer(deviceId, packageName) ?: return null
@@ -250,26 +274,60 @@ class AdbConnector {
             val parts = lines[i].trim().split("\\s+".toRegex())
             if (parts.size >= 2) {
                 val ts = parts[1].toLongOrNull() ?: continue
-                if (ts > 0 && ts < Long.MAX_VALUE / 2) presentTimes.add(ts)
+                // Filter invalid timestamps: must be positive, reasonable, and monotonic
+                if (ts > 0 && ts < Long.MAX_VALUE / 2) {
+                    if (presentTimes.isEmpty() || ts >= presentTimes.last()) {
+                        presentTimes.add(ts)
+                    }
+                }
             }
         }
         if (presentTimes.size < 2) return null
 
-        // Calculate FPS from all timestamps
-        val firstTime = presentTimes.first()
-        val lastTime = presentTimes.last()
-        val deltaSec = (lastTime - firstTime) / 1_000_000_000.0
-        if (deltaSec <= 0) return null
-        val fps = ((presentTimes.size - 1) / deltaSec).toInt().coerceIn(1, 144)
-
-        // Calculate frame times (delta between consecutive frames)
-        val frameTimes = mutableListOf<Double>()
+        // Calculate ALL frame times for histogram
+        val allFrameTimes = mutableListOf<Double>()
         for (i in 1 until presentTimes.size) {
             val deltaMs = (presentTimes[i] - presentTimes[i - 1]) / 1_000_000.0
-            if (deltaMs in 0.1..1000.0) frameTimes.add(deltaMs)
+            if (deltaMs in 0.1..1000.0) allFrameTimes.add(deltaMs)
+        }
+        if (allFrameTimes.isEmpty()) return null
+
+        // Remove statistical outliers using IQR method
+        val cleanFrameTimes = removeOutliers(allFrameTimes)
+
+        // WINDOWED FPS: use only frames from the last ~1 second of the buffer
+        // This gives instantaneous FPS instead of average over the entire buffer
+        val windowNs = 1_000_000_000L // 1 second window
+        val lastTime = presentTimes.last()
+        val windowStart = lastTime - windowNs
+        val windowedTimes = presentTimes.filter { it >= windowStart }
+
+        val fps = if (windowedTimes.size >= 2) {
+            val windowDelta = (windowedTimes.last() - windowedTimes.first()) / 1_000_000_000.0
+            if (windowDelta > 0) ((windowedTimes.size - 1) / windowDelta).toInt().coerceIn(1, 144) else 0
+        } else {
+            // Fallback to full buffer if window too small
+            val fullDelta = (presentTimes.last() - presentTimes.first()) / 1_000_000_000.0
+            if (fullDelta > 0) ((presentTimes.size - 1) / fullDelta).toInt().coerceIn(1, 144) else 0
         }
 
-        return FrameData(fps = fps, frameTimes = frameTimes, timestamp = System.currentTimeMillis())
+        return FrameData(fps = fps, frameTimes = cleanFrameTimes, timestamp = System.currentTimeMillis())
+    }
+
+    /**
+     * Removes statistical outliers from frame times using IQR method.
+     * Keeps values within [Q1 - 3*IQR, Q3 + 3*IQR] (generous bounds
+     * to preserve real jank while removing measurement artifacts).
+     */
+    private fun removeOutliers(values: List<Double>): List<Double> {
+        if (values.size < 4) return values
+        val sorted = values.sorted()
+        val q1 = sorted[(sorted.size * 0.25).toInt()]
+        val q3 = sorted[(sorted.size * 0.75).toInt()]
+        val iqr = q3 - q1
+        val lowerBound = q1 - 3 * iqr
+        val upperBound = q3 + 3 * iqr
+        return values.filter { it in lowerBound..upperBound }
     }
 
     // ===== Memory (Enhanced: Native + Java heap) =====
@@ -354,24 +412,72 @@ class AdbConnector {
 
     // ===== GPU Usage =====
 
+    /** Previous GPU busy/total times for delta-based calculation */
+    private var prevGpuBusyTotal: Pair<Long, Long>? = null
+
+    /**
+     * Gets GPU usage percentage.
+     *
+     * For Qualcomm Adreno: Uses gpu_busy_percentage which reports the percentage
+     * from the last polling interval. We also try gpu_clock_stats for delta-based
+     * measurement when available.
+     *
+     * For Mali: Reads utilization sysfs node.
+     *
+     * Fix over v5: The gpu_busy_percentage on some Qualcomm SoCs reports
+     * a stale or incorrect value. We now also read busy_time/total_time
+     * counters and compute delta-based usage for more accuracy.
+     */
     fun getGpuUsage(deviceId: String): GpuSnapshot {
-        // Qualcomm Adreno
-        var output = execAdbShell(deviceId, "cat /sys/class/kgsl/kgsl-3d0/gpu_busy_percentage", timeoutMs = 2000)
-        var match = Regex("(\\d+)").find(output)
-        if (match != null) {
-            val pct = match.groupValues[1].toDoubleOrNull()
-            if (pct != null) return GpuSnapshot(usage = pct.coerceIn(0.0, 100.0), timestamp = System.currentTimeMillis())
+        val now = System.currentTimeMillis()
+
+        // Qualcomm Adreno: Try delta-based busy_time first (more reliable)
+        val busyTimeOutput = execAdbShell(deviceId, "cat /sys/class/kgsl/kgsl-3d0/gpubusy", timeoutMs = 2000)
+        val busyMatch = Regex("(\\d+)\\s+(\\d+)").find(busyTimeOutput)
+        if (busyMatch != null) {
+            val busy = busyMatch.groupValues[1].toLongOrNull() ?: 0L
+            val total = busyMatch.groupValues[2].toLongOrNull() ?: 0L
+            if (total > 0) {
+                val prev = prevGpuBusyTotal
+                prevGpuBusyTotal = busy to total
+                if (prev != null) {
+                    val deltaBusy = busy - prev.first
+                    val deltaTotal = total - prev.second
+                    if (deltaTotal > 0) {
+                        val pct = (deltaBusy.toDouble() / deltaTotal * 100).coerceIn(0.0, 100.0)
+                        return GpuSnapshot(usage = pct, timestamp = now)
+                    }
+                }
+                // First reading: compute from absolute values as fallback
+                val pct = (busy.toDouble() / total * 100).coerceIn(0.0, 100.0)
+                return GpuSnapshot(usage = pct, timestamp = now)
+            }
         }
 
-        // Mali
-        output = execAdbShell(deviceId, "cat /sys/devices/platform/*/gpu/utilization 2>/dev/null || cat /sys/module/mali*/parameters/gpu_utilization 2>/dev/null", timeoutMs = 2000)
-        match = Regex("(\\d+)").find(output)
-        if (match != null) {
-            val pct = match.groupValues[1].toDoubleOrNull()
-            if (pct != null) return GpuSnapshot(usage = pct.coerceIn(0.0, 100.0), timestamp = System.currentTimeMillis())
+        // Qualcomm fallback: gpu_busy_percentage
+        val pctOutput = execAdbShell(deviceId, "cat /sys/class/kgsl/kgsl-3d0/gpu_busy_percentage", timeoutMs = 2000)
+        val pctMatch = Regex("(\\d+)\\s*%?").find(pctOutput)
+        if (pctMatch != null) {
+            val pct = pctMatch.groupValues[1].toDoubleOrNull()
+            if (pct != null) return GpuSnapshot(usage = pct.coerceIn(0.0, 100.0), timestamp = now)
         }
 
-        return GpuSnapshot(usage = -1.0, timestamp = System.currentTimeMillis())
+        // Mali: multiple possible paths
+        val maliPaths = listOf(
+            "cat /sys/devices/platform/*/gpu/utilization 2>/dev/null",
+            "cat /sys/module/mali*/parameters/gpu_utilization 2>/dev/null",
+            "cat /sys/class/misc/mali*/device/utilisation 2>/dev/null"
+        )
+        for (path in maliPaths) {
+            val output = execAdbShell(deviceId, path, timeoutMs = 2000)
+            val match = Regex("(\\d+)").find(output)
+            if (match != null) {
+                val pct = match.groupValues[1].toDoubleOrNull()
+                if (pct != null) return GpuSnapshot(usage = pct.coerceIn(0.0, 100.0), timestamp = now)
+            }
+        }
+
+        return GpuSnapshot(usage = -1.0, timestamp = now)
     }
 
     // ===== Temperature =====

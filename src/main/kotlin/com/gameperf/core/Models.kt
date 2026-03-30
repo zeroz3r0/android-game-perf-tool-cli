@@ -1,6 +1,7 @@
 package com.gameperf.core
 
 // ===== Device =====
+
 data class AndroidDevice(
     val id: String,
     val name: String,
@@ -15,21 +16,25 @@ data class DeviceSpecs(
     val manufacturer: String,
     val sdkVersion: Int,
     val cpu: String,
-    val ram: Long, // bytes
+    val ram: Long,
     val resolution: String,
     val cores: Int,
     val gpuModel: String
-)
+) {
+    val ramGb: Double get() = ram / (1024.0 * 1024 * 1024)
+}
 
 // ===== Battery =====
+
 data class BatteryInfo(
     val level: Int,
-    val temperature: Float, // Celsius
+    val temperature: Float,
     val isCharging: Boolean,
     val voltage: Int
 )
 
 // ===== Memory =====
+
 data class MemoryInfo(
     val totalPssKb: Long,
     val nativeHeapKb: Long,
@@ -42,9 +47,10 @@ data class MemoryInfo(
 }
 
 // ===== Frame Data =====
+
 data class FrameData(
     val fps: Int,
-    val frameTimes: List<Double>, // ms per frame
+    val frameTimes: List<Double>,
     val timestamp: Long
 ) {
     val jankFrames: Int get() = frameTimes.count { it > 16.67 }
@@ -61,9 +67,10 @@ data class RenderResolution(
 }
 
 // ===== CPU =====
+
 data class CpuSnapshot(
-    val totalUsage: Double, // 0-100%
-    val perCoreUsage: List<Double>, // 0-100% per core
+    val totalUsage: Double,
+    val perCoreUsage: List<Double>,
     val timestamp: Long
 )
 
@@ -81,21 +88,30 @@ data class CpuTimes(
 }
 
 // ===== GPU =====
+
 data class GpuSnapshot(
-    val usage: Double, // 0-100%, -1 if unavailable
+    val usage: Double,
     val timestamp: Long
-)
+) {
+    val isAvailable: Boolean get() = usage >= 0
+}
 
 // ===== Temperature =====
+
 data class ThermalSnapshot(
-    val cpuTemp: Double, // Celsius, -1 if unavailable
-    val gpuTemp: Double, // Celsius, -1 if unavailable
-    val batteryTemp: Double, // Celsius
-    val skinTemp: Double, // Celsius, -1 if unavailable
+    val cpuTemp: Double,
+    val gpuTemp: Double,
+    val batteryTemp: Double,
+    val skinTemp: Double,
     val timestamp: Long
-)
+) {
+    val hasCpuTemp: Boolean get() = cpuTemp > 0
+    val hasGpuTemp: Boolean get() = gpuTemp > 0
+    val hasSkinTemp: Boolean get() = skinTemp > 0
+}
 
 // ===== Logs =====
+
 enum class LogLevel {
     VERBOSE, DEBUG, INFO, WARN, ERROR, FATAL
 }
@@ -110,6 +126,7 @@ data class LogEntry(
 )
 
 // ===== Graphics Config =====
+
 data class GraphicsConfigChange(
     val timestamp: Long,
     val previousResolution: RenderResolution?,
@@ -117,12 +134,16 @@ data class GraphicsConfigChange(
     val fpsBeforeChange: Int,
     val fpsAfterChange: Int
 ) {
-    val resolutionChanged: Boolean get() = previousResolution != null && newResolution != null && previousResolution != newResolution
-    val resolutionDecreased: Boolean get() = resolutionChanged && (newResolution!!.pixels < previousResolution!!.pixels)
-    val fpsImproved: Boolean get() = fpsAfterChange > fpsBeforeChange + 3
+    val resolutionChanged: Boolean
+        get() = previousResolution != null && newResolution != null && previousResolution != newResolution
+    val resolutionDecreased: Boolean
+        get() = resolutionChanged && (newResolution!!.pixels < previousResolution!!.pixels)
+    val fpsImproved: Boolean
+        get() = fpsAfterChange > fpsBeforeChange + 3
 }
 
 // ===== Event Categories =====
+
 enum class EventCategory(val label: String, val icon: String, val color: String) {
     GC("Recolector de basura", "GC", "#00ff88"),
     AUDIO("Audio", "AUD", "#ffaa00"),
@@ -144,22 +165,30 @@ data class CategorizedEvent(
 )
 
 // ===== Analysis =====
-data class Problema(
-    val tipo: String,
-    val severidad: String,
-    val descripcion: String,
-    val explicacion: String,
-    val solucion: String
+
+data class Problem(
+    val type: String,
+    val severity: Severity,
+    val description: String,
+    val explanation: String,
+    val solution: String
 )
+
+enum class Severity(val label: String, val color: String, val weight: Int) {
+    HIGH("Alto", "#ff0044", 12),
+    MEDIUM("Medio", "#ffaa00", 6),
+    LOW("Bajo", "#00d4ff", 2)
+}
 
 data class FpsDrop(
     val index: Int,
     val fps: Int,
     val timestamp: Long,
-    val eventoCercano: LogEntry?
+    val nearbyEvent: LogEntry?
 )
 
 // ===== Session =====
+
 data class SessionSample(
     val timestamp: Long,
     val fps: Int,
@@ -171,7 +200,28 @@ data class SessionSample(
     val renderResolution: RenderResolution?
 )
 
+data class SessionData(
+    val gamePackage: String,
+    val deviceSpecs: DeviceSpecs,
+    val samples: MutableList<SessionSample>,
+    val events: MutableList<LogEntry>,
+    val configChanges: MutableList<GraphicsConfigChange>,
+    val batteryStart: BatteryInfo?,
+    val batteryEnd: BatteryInfo?,
+    val memStart: MemoryInfo?,
+    val memEnd: MemoryInfo?,
+    val missedFramesStart: Int,
+    val missedFramesEnd: Int,
+    val startTime: Long,
+    var endTime: Long,
+    val initialResolution: RenderResolution?
+) {
+    val durationSeconds: Int get() = ((endTime - startTime) / 1000).toInt()
+    val totalFrameDrops: Int get() = missedFramesEnd - missedFramesStart
+}
+
 // ===== Percentiles =====
+
 data class PercentileStats(
     val p1: Double,
     val p5: Double,
@@ -206,3 +256,21 @@ data class PercentileStats(
         }
     }
 }
+
+// ===== Analysis Result =====
+
+data class AnalysisResult(
+    val session: SessionData,
+    val fpsPercentiles: PercentileStats?,
+    val frameTimePercentiles: PercentileStats?,
+    val problems: List<Problem>,
+    val relevantEvents: List<LogEntry>,
+    val categorizedEvents: List<CategorizedEvent>,
+    val groupedErrors: List<Pair<String, Int>>,
+    val groupedWarnings: List<Pair<String, Int>>,
+    val fpsDrops: List<FpsDrop>,
+    val grade: Char,
+    val gcCount: Int,
+    val audioIssues: Int,
+    val thermalEvents: Int
+)

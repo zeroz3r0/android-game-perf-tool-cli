@@ -14,3 +14,12 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Reports (generated output)
+reports/
+informe_*.html
+informe_*.json
+performance_report_*
+
+# Kotlin
+.kotlin/
