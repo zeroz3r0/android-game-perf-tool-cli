@@ -1,13 +1,23 @@
 package com.gameperf.analysis
 
 import com.gameperf.core.*
+import com.gameperf.rules.RulesEngine
+import com.gameperf.rules.RulesEngine.GlobalThresholds
+import com.gameperf.rules.RulesEngine.RulesConfig
 
 /**
  * Detects performance problems from session data and assigns
  * severity levels with user-facing explanations and solutions.
+ *
+ * Thresholds are loaded from [RulesConfig.globalThresholds] when provided,
+ * or falls back to the defaults from `rules-default.json`.
  */
 object ProblemDetector {
 
+    /**
+     * Convenience overload that loads default rules from classpath.
+     * Mantiene compatibilidad con codigo existente.
+     */
     fun detect(
         data: SessionData,
         fpsPercentiles: PercentileStats?,
@@ -15,6 +25,24 @@ object ProblemDetector {
         audioIssues: Int,
         errorCount: Int
     ): List<Problem> {
+        val config = RulesEngine.loadRules()
+        return detect(data, fpsPercentiles, gcCount, audioIssues, errorCount, config)
+    }
+
+    /**
+     * Detects problems using thresholds from the provided [RulesConfig].
+     * Evaluates both hardcoded heuristics (with configurable thresholds)
+     * and pattern-match rules from the rules file.
+     */
+    fun detect(
+        data: SessionData,
+        fpsPercentiles: PercentileStats?,
+        gcCount: Int,
+        audioIssues: Int,
+        errorCount: Int,
+        rulesConfig: RulesConfig
+    ): List<Problem> {
+        val t = rulesConfig.globalThresholds
         val problems = mutableListOf<Problem>()
         val avgFps = fpsPercentiles?.avg ?: 0.0
         val totalDrops = data.totalFrameDrops
@@ -23,16 +51,16 @@ object ProblemDetector {
         val avgCpu = data.samples.mapNotNull { it.cpuSnapshot?.totalUsage }.average().let { if (it.isNaN()) 0.0 else it }
         val maxTemp = data.samples.mapNotNull { it.thermalSnapshot?.cpuTemp }.filter { it > 0 }.maxOrNull() ?: 0.0
 
-        // FPS problems
-        if (avgFps > 0 && avgFps < 30) {
+        // FPS problems — thresholds from globalThresholds
+        if (avgFps > 0 && avgFps < t.fpsMin) {
             problems.add(Problem(
                 type = "LOW_FPS",
                 severity = Severity.HIGH,
                 description = "FPS promedio de ${avgFps.toInt()} - Muy bajo",
-                explanation = "El juego renderiza menos de 30 imagenes por segundo. El movimiento se ve entrecortado y la respuesta a los controles tiene retraso visible.",
+                explanation = "El juego renderiza menos de ${t.fpsMin} imagenes por segundo. El movimiento se ve entrecortado y la respuesta a los controles tiene retraso visible.",
                 solution = "1) Bajar la calidad grafica en ajustes del juego. 2) Cerrar apps en segundo plano. 3) Activar modo rendimiento si disponible. 4) Desactivar efectos de post-procesado."
             ))
-        } else if (avgFps in 30.0..44.99) {
+        } else if (avgFps in t.fpsMin.toDouble()..44.99) {
             problems.add(Problem(
                 type = "LOW_FPS",
                 severity = Severity.MEDIUM,
@@ -67,21 +95,21 @@ object ProblemDetector {
             ))
         }
 
-        // Memory
-        if (peakMem > 2000) {
+        // Memory — thresholds from globalThresholds
+        if (peakMem > t.memoryCritical) {
             problems.add(Problem(
                 type = "HIGH_MEMORY",
                 severity = Severity.HIGH,
                 description = "Pico de $peakMem MB",
-                explanation = "El juego uso $peakMem MB de RAM, dejando poco margen para el sistema.",
+                explanation = "El juego uso $peakMem MB de RAM, superando el umbral critico de ${t.memoryCritical}MB.",
                 solution = "1) Cerrar todas las apps antes de jugar. 2) Reiniciar el dispositivo. 3) Si tiene 4GB o menos de RAM, el juego es muy exigente."
             ))
-        } else if (peakMem > 1500) {
+        } else if (peakMem > t.memoryWarning) {
             problems.add(Problem(
                 type = "HIGH_MEMORY",
                 severity = Severity.MEDIUM,
                 description = "Pico de $peakMem MB",
-                explanation = "El juego usa bastante RAM. No critico pero cerca del limite en dispositivos con poca RAM.",
+                explanation = "El juego usa bastante RAM (umbral: ${t.memoryWarning}MB). No critico pero cerca del limite en dispositivos con poca RAM.",
                 solution = "1) Cerrar apps en segundo plano. 2) Evitar Chrome con muchas pestanas."
             ))
         }
@@ -119,24 +147,24 @@ object ProblemDetector {
             ))
         }
 
-        // CPU saturation
-        if (avgCpu > 85) {
+        // CPU saturation — threshold from globalThresholds
+        if (avgCpu > t.cpuCritical) {
             problems.add(Problem(
                 type = "CPU_SATURATED",
                 severity = Severity.HIGH,
                 description = "CPU al ${avgCpu.toInt()}%",
-                explanation = "El procesador esta casi al maximo. Es el cuello de botella principal del rendimiento.",
+                explanation = "El procesador esta casi al maximo (umbral: ${t.cpuCritical}%). Es el cuello de botella principal del rendimiento.",
                 solution = "1) Cerrar todas las apps. 2) Bajar calidad de IA/fisica en el juego si posible. 3) El dispositivo puede no ser suficiente."
             ))
         }
 
-        // Overheating
-        if (maxTemp > 45) {
+        // Overheating — threshold from globalThresholds
+        if (maxTemp > t.tempCritical) {
             problems.add(Problem(
                 type = "OVERHEATING",
                 severity = Severity.HIGH,
                 description = "Temperatura maxima: ${maxTemp.toInt()}C",
-                explanation = "El dispositivo alcanzo ${maxTemp.toInt()}C. A partir de ~42C se activa el thermal throttling que reduce CPU/GPU.",
+                explanation = "El dispositivo alcanzo ${maxTemp.toInt()}C. A partir de ~${t.tempWarning}C se activa el thermal throttling que reduce CPU/GPU.",
                 solution = "1) Quitar funda del dispositivo. 2) No jugar mientras carga. 3) Jugar en ambiente fresco. 4) Hacer pausas de 5 min cada 15-20 min."
             ))
         }
@@ -151,6 +179,10 @@ object ProblemDetector {
                 solution = "1) Actualizar el juego a la ultima version. 2) Borrar cache del juego. 3) Si crashea, reinstalar."
             ))
         }
+
+        // Pattern-match rules from the rules file
+        val ruleProblems = RulesEngine.evaluate(data.events, rulesConfig)
+        problems.addAll(ruleProblems)
 
         return problems
     }

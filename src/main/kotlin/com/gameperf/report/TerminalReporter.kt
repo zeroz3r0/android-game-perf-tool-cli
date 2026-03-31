@@ -6,10 +6,53 @@ import com.gameperf.i18n.Strings
 
 /**
  * Prints analysis results to the terminal in a readable format.
+ *
+ * Supports two modes:
+ * - **Normal** (`quiet=false`): Full output with device info, events, explanations.
+ * - **Quiet** (`quiet=true`): Compact summary with grade, FPS, frame time, memory, and problems count.
  */
 object TerminalReporter {
 
-    fun print(result: AnalysisResult, @Suppress("UNUSED_PARAMETER") config: AppConfig) {
+    fun print(result: AnalysisResult, config: AppConfig) {
+        if (config.quiet) {
+            printQuiet(result)
+        } else {
+            printFull(result)
+        }
+    }
+
+    // ===== Quiet Mode =====
+
+    /**
+     * Imprime solo un resumen compacto:
+     * Grade, FPS avg/P1/P5, Frame time avg/P99, Memory peak, Problems count.
+     */
+    private fun printQuiet(result: AnalysisResult) {
+        val fp = result.fpsPercentiles
+        val ft = result.frameTimePercentiles
+        val s = result.session
+        val peakMem = s.samples.mapNotNull { it.memoryInfo?.totalMb }.maxOrNull() ?: 0L
+
+        println()
+        println("NOTA: ${result.grade}")
+
+        if (fp != null) {
+            println("FPS: avg=${fp.avg.toInt()} P1=${fp.p1.toInt()} P5=${fp.p5.toInt()}")
+        } else {
+            println("FPS: sin datos")
+        }
+
+        if (ft != null) {
+            println("Frame Time: avg=${"%.1f".format(ft.avg)}ms P99=${"%.1f".format(ft.p99)}ms")
+        }
+
+        println("Memoria pico: ${peakMem}MB")
+        println("Problemas: ${result.problems.size}")
+    }
+
+    // ===== Full Mode =====
+
+    private fun printFull(result: AnalysisResult) {
         val s = result.session
         val dur = s.durationSeconds
         println(Strings.resultsHeader(dur / 60, dur % 60))

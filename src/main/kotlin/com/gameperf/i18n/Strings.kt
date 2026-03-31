@@ -125,19 +125,21 @@ object Strings {
         |  -p, --package <pkg>  Paquete del juego (ej: com.supercell.clashofclans)
         |  -o, --output <dir>   Directorio de salida (default: reports/)
         |  -w, --wifi           Cambiar a ADB WiFi (desconecta USB, mide bateria real)
-        |  -q, --quiet          Sin explicaciones detalladas
+        |  -q, --quiet          Sin explicaciones detalladas (solo resumen compacto)
+        |  --rules <path>       Archivo de reglas personalizado (default: rules-default.json)
         |  --json               Exportar tambien en JSON
         |  --no-open            No abrir el informe automaticamente
         |  -h, --help           Mostrar esta ayuda
         |  -v, --version        Mostrar version
         |
         |Ejemplos:
-        |  gameperf                    Prueba indefinida por USB
-        |  gameperf 60                 Prueba de 60 segundos
-        |  gameperf --wifi             WiFi, desconecta cable, prueba indefinida
-        |  gameperf --wifi 120         WiFi, prueba de 2 minutos
-        |  gameperf -p com.game.pkg 60 Paquete especifico, 60 segundos
-        |  gameperf --json -o ~/out    Exportar JSON a directorio custom
+        |  gameperf                          Prueba indefinida por USB
+        |  gameperf 60                       Prueba de 60 segundos
+        |  gameperf --wifi                   WiFi, desconecta cable, prueba indefinida
+        |  gameperf --wifi 120               WiFi, prueba de 2 minutos
+        |  gameperf -p com.game.pkg 60       Paquete especifico, 60 segundos
+        |  gameperf --json -o ~/out          Exportar JSON a directorio custom
+        |  gameperf --rules my-rules.json    Usar reglas personalizadas
     """.trimMargin()
 
     // ===== Log Translation =====

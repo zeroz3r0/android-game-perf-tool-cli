@@ -26,7 +26,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Outlier filtering**: filtro estadistico IQR para frame times, elimina artifacts de medicion
 - **Layer caching**: cache del nombre del layer de SurfaceFlinger durante la sesion
 - **Monotonic timestamps**: filtra timestamps no-monotonicos de SurfaceFlinger
-- **47 tests unitarios**: PercentileStats, GradeCalculator, ProblemDetector, EventCategorizer, SessionAnalyzer, JsonReporter
+- **46 tests unitarios**: PercentileStats, GradeCalculator, ProblemDetector, EventCategorizer, SessionAnalyzer, JsonReporter
 - **Interfaz AdbProvider**: abstraccion para dependency injection y testing
 - **CPU per-process**: medicion de CPU del juego via /proc/{pid}/stat
 - **KDoc**: documentacion en toda la API publica (Models, AdbProvider)

@@ -2,6 +2,8 @@ package com.gameperf.analysis
 
 import com.gameperf.core.*
 import com.gameperf.i18n.Strings
+import com.gameperf.rules.RulesEngine
+import com.gameperf.rules.RulesEngine.RulesConfig
 
 /**
  * Orchestrates full analysis of a capture session.
@@ -9,7 +11,12 @@ import com.gameperf.i18n.Strings
  */
 object SessionAnalyzer {
 
+    /** Convenience overload that loads default rules. */
     fun analyze(data: SessionData): AnalysisResult {
+        return analyze(data, RulesEngine.loadRules())
+    }
+
+    fun analyze(data: SessionData, rulesConfig: RulesConfig): AnalysisResult {
         val allFps = data.samples.filter { it.fps > 0 }.map { it.fps }
         val allFrameTimes = data.samples.flatMap { it.frameTimes }
         val fpsPercentiles = PercentileStats.fromIntValues(allFps)
@@ -48,7 +55,7 @@ object SessionAnalyzer {
         val fpsDrops = detectFpsDrops(data, relevantEvents)
 
         // Detect problems
-        val problems = ProblemDetector.detect(data, fpsPercentiles, gcCount, audioIssues, errors.size)
+        val problems = ProblemDetector.detect(data, fpsPercentiles, gcCount, audioIssues, errors.size, rulesConfig)
 
         // Calculate grade
         val grade = GradeCalculator.calculate(fpsPercentiles, problems)

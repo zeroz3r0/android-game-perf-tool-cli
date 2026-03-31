@@ -218,7 +218,7 @@ src/main/kotlin/com/gameperf/
 ## Tests
 
 ```bash
-./gradlew test    # 47 tests
+./gradlew test    # 46 tests
 ```
 
 | Suite | Tests | Que cubre |
@@ -288,7 +288,7 @@ JsonReporter  -->  Datos estructurados para integracion
 
 ## Versiones
 
-- **v6.0.0** - Refactorizacion completa: arquitectura modular, interfaz AdbProvider, FPS windowed, GPU delta, outlier filtering, CPU per-process, 47 tests, CI/CD, validacion en Pixel 7a
+- **v6.0.0** - Refactorizacion completa: arquitectura modular, interfaz AdbProvider, FPS windowed, GPU delta, outlier filtering, CPU per-process, 46 tests, CI/CD, validacion en Pixel 7a
 - **v5.0** - WiFi ADB, frame-by-frame sampling, event categorization
 - **v4.0** - Frame data unificado, deteccion de cambios graficos
 

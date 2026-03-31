@@ -10,6 +10,7 @@ import com.gameperf.i18n.Strings
 import com.gameperf.report.HtmlReporter
 import com.gameperf.report.JsonReporter
 import com.gameperf.report.TerminalReporter
+import com.gameperf.rules.RulesEngine
 import java.awt.Desktop
 import java.io.File
 import java.net.URI
@@ -62,8 +63,15 @@ fun main(args: Array<String>) {
     val session = CaptureSession(connector, config)
     val sessionData = session.capture(device, gamePackage, specs, batteryStart, isWifi)
 
+    // Load rules
+    val rulesConfig = if (config.rulesFile != null) {
+        RulesEngine.loadRules(config.rulesFile)
+    } else {
+        RulesEngine.loadRules()
+    }
+
     // Analyze
-    val result = SessionAnalyzer.analyze(sessionData)
+    val result = SessionAnalyzer.analyze(sessionData, rulesConfig)
 
     // Terminal output
     TerminalReporter.print(result, config)
@@ -109,11 +117,13 @@ fun parseArgs(args: Array<String>): AppConfig {
 
     var packageName: String? = null
     var outputDir = "reports"
+    var rulesFile: String? = null
     val argsIt = args.iterator()
     while (argsIt.hasNext()) {
         when (argsIt.next()) {
             "-p", "--package" -> if (argsIt.hasNext()) packageName = argsIt.next()
             "-o", "--output" -> if (argsIt.hasNext()) outputDir = argsIt.next()
+            "--rules" -> if (argsIt.hasNext()) rulesFile = argsIt.next()
         }
     }
 
@@ -124,7 +134,8 @@ fun parseArgs(args: Array<String>): AppConfig {
         wifi = args.any { it == "--wifi" || it == "-w" },
         packageName = packageName,
         outputDir = outputDir,
-        openReport = !args.any { it == "--no-open" }
+        openReport = !args.any { it == "--no-open" },
+        rulesFile = rulesFile
     )
 }
 

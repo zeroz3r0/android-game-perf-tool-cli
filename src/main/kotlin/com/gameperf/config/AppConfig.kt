@@ -7,7 +7,9 @@ data class AppConfig(
     val wifi: Boolean = false,
     val packageName: String? = null,
     val outputDir: String = "reports",
-    val openReport: Boolean = true
+    val openReport: Boolean = true,
+    /** Ruta a archivo de reglas personalizado. Null = usar reglas por defecto del classpath. */
+    val rulesFile: String? = null
 ) {
     companion object {
         const val APP_NAME = "Android Game Performance Tool"
