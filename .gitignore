@@ -23,3 +23,6 @@ performance_report_*
 
 # Kotlin
 .kotlin/
+
+# Compiled output
+bin/
